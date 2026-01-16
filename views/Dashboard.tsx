@@ -44,6 +44,20 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate, stats, loans, onPayme
 
   return (
     <div className="p-8 space-y-8 animate-in fade-in duration-500">
+      {/* BOTÃO DEBUG TEMPORÁRIO - REMOVER DEPOIS */}
+      <div className="fixed bottom-4 right-4 z-50">
+        <button
+          onClick={() => {
+            localStorage.clear();
+            console.log('🧹 localStorage limpo!');
+            alert('localStorage limpo! Faça logout e login novamente para testar a modal.');
+          }}
+          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow-lg text-xs font-bold"
+        >
+          🐛 DEBUG: Limpar localStorage
+        </button>
+      </div>
+      
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-3xl font-black tracking-tight text-bg-dark">Painel de Controle</h2>

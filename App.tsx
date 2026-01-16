@@ -254,6 +254,13 @@ const App: React.FC = () => {
     // Definir status da licença do usuário
     const userLicenseStatus = user?.statusLicenca || 'TESTE';
     
+    console.log('🔍 DEBUG LOGIN:', {
+      user,
+      userLicenseStatus,
+      isAdmin,
+      statusDoBackend: user?.statusLicenca
+    });
+    
     setAuth(prev => ({
       ...prev,
       isAuthenticated: true,
@@ -270,17 +277,28 @@ const App: React.FC = () => {
     }));
     
     // Mostrar modal de boas-vindas para usuários em TESTE que nunca assinaram
-    if (!isAdmin && userLicenseStatus === 'TESTE') {
+    if (!isAdmin) {
       const hasSeenModal = localStorage.getItem('hasSeenWelcomeModal');
       const hasSubscribed = localStorage.getItem('hasSubscribed');
       
-      // Mostrar modal se nunca viu E nunca assinou
-      if (!hasSeenModal && !hasSubscribed) {
-        console.log('🎉 Mostrando modal de boas-vindas para usuário em teste');
+      console.log('🔍 DEBUG MODAL:', {
+        userLicenseStatus,
+        hasSeenModal,
+        hasSubscribed,
+        shouldShow: userLicenseStatus === 'TESTE' && !hasSeenModal && !hasSubscribed
+      });
+      
+      // Mostrar modal se está em TESTE e nunca viu e nunca assinou
+      if (userLicenseStatus === 'TESTE' && !hasSeenModal && !hasSubscribed) {
+        console.log('🎉 MOSTRANDO MODAL DE BOAS-VINDAS');
         localStorage.setItem('showWelcomeModal', 'true');
         setShowWelcomeModal(true);
       } else {
-        console.log('ℹ️ Modal não exibida:', { hasSeenModal, hasSubscribed });
+        console.log('❌ Modal NÃO exibida. Motivos:', {
+          naoEstaTeste: userLicenseStatus !== 'TESTE',
+          jaViu: !!hasSeenModal,
+          jaAssinou: !!hasSubscribed
+        });
       }
     }
     
