@@ -301,9 +301,9 @@ const App: React.FC = () => {
       if (!targetLoan) return;
 
       // Tentar registrar pagamento no backend
-      await loansService.registerPayment(parseInt(loanId), {
+      await loansService.registerPayment(loanId, {
         valor: value,
-        tipo: isInterestOnly ? 'JUROS' : 'AMORTIZACAO',
+        tipo_pagamento: isInterestOnly ? 'JUROS' : 'AMORTIZACAO',
         data_pagamento: paymentDate
       }).catch(err => {
         console.warn('Erro ao registrar pagamento na API, salvando localmente:', err);
@@ -337,10 +337,10 @@ const App: React.FC = () => {
 
       // Registrar transação de entrada
       await transactionsService.create({
-        data: paymentDate,
+        data_transacao: paymentDate,
         descricao: `${isInterestOnly ? 'Juros' : 'Amortização'}: ${targetLoan.clientName}`,
         categoria: 'Recebimento',
-        tipo: 'ENTRADA',
+        tipo_transacao: 'ENTRADA',
         valor: value
       }).catch(err => console.warn('Erro ao criar transação:', err));
 
@@ -454,11 +454,11 @@ const App: React.FC = () => {
                     const novoEmprestimo = await loansService.create({
                       cliente_id: parseInt(loan.clientId),
                       nome_cliente: loan.clientName,
-                      valor_emprestado: loan.amount,
+                      valor_principal: loan.amount,
                       taxa_juros: loan.interestRate,
-                      data_liberacao: loan.startDate,
+                      data_inicio: loan.startDate,
                       data_vencimento: loan.dueDate,
-                      valor_total: loan.totalToReceive
+                      total_receber: loan.totalToReceive
                     }).catch(err => {
                       console.warn('Erro ao criar empréstimo na API, salvando localmente:', err);
                       return null;
@@ -483,10 +483,10 @@ const App: React.FC = () => {
 
                       // Registrar transação de saída
                       await transactionsService.create({
-                        data: loan.startDate,
+                        data_transacao: loan.startDate,
                         descricao: `Empréstimo Liberado: ${loan.clientName}`,
                         categoria: 'Empréstimos',
-                        tipo: 'SAIDA',
+                        tipo_transacao: 'SAIDA',
                         valor: loan.amount
                       }).catch(err => console.warn('Erro ao criar transação:', err));
 
