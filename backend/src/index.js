@@ -12,7 +12,7 @@ import pricesRoutes from './routes/prices.js';
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 10000;
 
 // Configuração do pool do PostgreSQL
 export const pool = new Pool({
