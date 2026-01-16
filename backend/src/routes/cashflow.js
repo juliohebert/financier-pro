@@ -18,7 +18,7 @@ function authenticateToken(req, res, next) {
 // Fluxo de caixa
 router.get('/', authenticateToken, async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM cashflow');
+    const result = await pool.query('SELECT * FROM transacoes WHERE usuario_id = $1 ORDER BY data_transacao DESC', [req.user.id]);
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -26,9 +26,12 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 router.post('/', authenticateToken, async (req, res) => {
-  const { type, value, date } = req.body;
+  const { data_transacao, descricao, categoria, tipo_transacao, valor, status } = req.body;
   try {
-    const result = await pool.query('INSERT INTO cashflow (type, value, date) VALUES ($1, $2, $3) RETURNING *', [type, value, date]);
+    const result = await pool.query(
+      'INSERT INTO transacoes (usuario_id, data_transacao, descricao, categoria, tipo_transacao, valor, status) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+      [req.user.id, data_transacao, descricao, categoria, tipo_transacao, valor, status || 'LIQUIDADO']
+    );
     res.status(201).json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
