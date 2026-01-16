@@ -2,6 +2,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { GlobalUser, LicensePayment } from '../types';
 import { usersService } from '../services';
+import { pricesService, PlanPrices } from '../services/pricesService';
 
 const AdminLicenseView: React.FC = () => {
   const [users, setUsers] = useState<GlobalUser[]>([]);
@@ -19,14 +20,28 @@ const AdminLicenseView: React.FC = () => {
   const [newPass, setNewPass] = useState('');
 
   const [plans, setPlans] = useState([
-    { id: 'm', name: 'Mensal', price: 49.90 },
-    { id: 'a', name: 'Anual', price: 499.00 }
+    { id: 'm', name: 'Mensal', price: 49.00 },
+    { id: 'a', name: 'Anual', price: 468.00 }
   ]);
+  const [pricesLoading, setPricesLoading] = useState(false);
 
-  // Carregar usuários do backend
+  // Carregar usuários e preços do backend
   useEffect(() => {
     loadUsers();
+    loadPrices();
   }, []);
+
+  const loadPrices = async () => {
+    try {
+      const prices = await pricesService.getAll();
+      setPlans([
+        { id: 'm', name: 'Mensal', price: prices.mensal },
+        { id: 'a', name: 'Anual', price: prices.anual }
+      ]);
+    } catch (error) {
+      console.error('Erro ao carregar preços:', error);
+    }
+  };
 
   const loadUsers = async () => {
     try {
@@ -203,7 +218,26 @@ const AdminLicenseView: React.FC = () => {
         <div className="bg-white border-2 border-bg-dark p-8 rounded-[2.5rem] mb-10 animate-in slide-in-from-top-4">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-xl font-black text-bg-dark">Tabela de Preços ao Consumidor</h3>
-            <span className="bg-primary/10 text-primary-dark px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">Configuração Global</span>
+            <button 
+              onClick={async () => {
+                setPricesLoading(true);
+                try {
+                  const mensal = plans.find(p => p.name === 'Mensal')?.price || 49.00;
+                  const anual = plans.find(p => p.name === 'Anual')?.price || 468.00;
+                  await pricesService.update({ mensal, anual });
+                  alert('✅ Preços atualizados com sucesso!');
+                } catch (error) {
+                  console.error('Erro ao salvar preços:', error);
+                  alert('❌ Erro ao salvar preços. Tente novamente.');
+                } finally {
+                  setPricesLoading(false);
+                }
+              }}
+              disabled={pricesLoading}
+              className="bg-primary text-white px-6 py-2 rounded-xl font-black hover:bg-primary-dark disabled:opacity-50 transition-all"
+            >
+              {pricesLoading ? 'Salvando...' : 'Salvar Preços'}
+            </button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {plans.map((p) => (
@@ -214,7 +248,7 @@ const AdminLicenseView: React.FC = () => {
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">R$</span>
                       <input 
                         type="number" 
-                        defaultValue={p.price}
+                        value={p.price}
                         onChange={(e) => {
                           const val = parseFloat(e.target.value);
                           if (!isNaN(val)) setPlans(prev => prev.map(item => item.id === p.id ? {...item, price: val} : item));

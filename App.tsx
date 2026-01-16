@@ -15,6 +15,7 @@ import UpgradeView from './views/UpgradeView';
 import AdminLicenseView from './views/AdminLicenseView';
 import { AppView, Client, Transaction, Loan, PaymentEntry, AppSettings, UserAuth } from './types';
 import { authService, clientsService, loansService, transactionsService } from './services';
+import { pricesService, PlanPrices } from './services/pricesService';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -74,19 +75,50 @@ const INITIAL_CLIENTS: Omit<Client, 'totalOpen' | 'status'>[] = [
 ];
 
 const App: React.FC = () => {
-  const [auth, setAuth] = useState<UserAuth>({
-    isAuthenticated: authService.isAuthenticated(),
-    name: '',
-    email: '',
-    role: 'USER',
-    license: {
-      status: 'TESTE',
-      trialStartDate: new Date().toISOString(),
-      planName: 'Teste'
+  const [auth, setAuth] = useState<UserAuth>(() => {
+    // Recuperar dados do usuário do localStorage ao carregar
+    const user = authService.getCurrentUser();
+    const isAuth = authService.isAuthenticated();
+    const savedRole = localStorage.getItem('userRole') as 'USER' | 'ADMIN' | null;
+    
+    if (isAuth && user) {
+      return {
+        isAuthenticated: true,
+        name: user.nome || '',
+        email: user.email || '',
+        role: savedRole || (user.funcao === 'ADMIN' ? 'ADMIN' : 'USER'),
+        license: {
+          status: user.statusLicenca || 'TESTE',
+          trialStartDate: user.dataInicioTeste || new Date().toISOString(),
+          planName: user.planoLicenca || 'Teste'
+        }
+      };
     }
+    
+    return {
+      isAuthenticated: false,
+      name: '',
+      email: '',
+      role: 'USER',
+      license: {
+        status: 'TESTE',
+        trialStartDate: new Date().toISOString(),
+        planName: 'Teste'
+      }
+    };
   });
 
-  const [currentView, setCurrentView] = useState<AppView>(AppView.DASHBOARD);
+  const [currentView, setCurrentView] = useState<AppView>(() => {
+    // Recuperar view salva para admin
+    const savedView = localStorage.getItem('currentView');
+    const savedRole = localStorage.getItem('userRole');
+    
+    if (savedRole === 'ADMIN' && savedView) {
+      return savedView as AppView;
+    }
+    
+    return AppView.DASHBOARD;
+  });
   const [selectedLoanId, setSelectedLoanId] = useState<string | null>(null);
   const [preSelectedClientId, setPreSelectedClientId] = useState<string>('');
   const [baseClients, setBaseClients] = useState<Omit<Client, 'totalOpen' | 'status'>[]>(INITIAL_CLIENTS);
@@ -97,8 +129,23 @@ const App: React.FC = () => {
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [showPixPayment, setShowPixPayment] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<'mensal' | 'anual'>('anual');
+  const [planPrices, setPlanPrices] = useState<PlanPrices>({ mensal: 49.00, anual: 468.00 });
 
   const today = new Date().toISOString().split('T')[0];
+
+  // Carregar preços dos planos ao montar o componente
+  useEffect(() => {
+    const loadPrices = async () => {
+      try {
+        const prices = await pricesService.getAll();
+        setPlanPrices(prices);
+      } catch (error) {
+        console.error('Erro ao carregar preços:', error);
+        // Mantém os valores padrão em caso de erro
+      }
+    };
+    loadPrices();
+  }, []);
 
   // Carregar dados do backend ao fazer login
   useEffect(() => {
@@ -254,11 +301,15 @@ const App: React.FC = () => {
     // Definir status da licença do usuário
     const userLicenseStatus = user?.statusLicenca || 'TESTE';
     
+    // Salvar role no localStorage
+    const userRole = isAdmin ? 'ADMIN' : 'USER';
+    localStorage.setItem('userRole', userRole);
+    
     setAuth(prev => ({
       ...prev,
       isAuthenticated: true,
       email: user?.email || email,
-      role: isAdmin ? 'ADMIN' : 'USER',
+      role: userRole,
       name: user?.nome || email.split('@')[0].toUpperCase(),
       license: isAdmin 
         ? { status: 'ATIVO', planName: 'Super-Admin', trialStartDate: '' } 
@@ -277,14 +328,19 @@ const App: React.FC = () => {
     }
     
     if (isAdmin) {
-      setCurrentView(AppView.ADMIN_LICENSES);
+      const adminView = AppView.ADMIN_LICENSES;
+      setCurrentView(adminView);
+      localStorage.setItem('currentView', adminView);
     } else {
       setCurrentView(AppView.DASHBOARD);
+      localStorage.removeItem('currentView');
     }
   };
 
   const handleLogout = () => {
     authService.logout();
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('currentView');
     setAuth({
       isAuthenticated: false,
       name: '',
@@ -489,7 +545,7 @@ const App: React.FC = () => {
                           </div>
                           <p className="font-black text-slate-900">Mensal</p>
                         </div>
-                        <p className="text-2xl font-black text-primary mb-1">R$ 49</p>
+                        <p className="text-2xl font-black text-primary mb-1">R$ {planPrices.mensal.toFixed(0)}</p>
                         <p className="text-slate-500">por mês</p>
                       </button>
                       <button
@@ -511,7 +567,7 @@ const App: React.FC = () => {
                           </div>
                           <p className="font-black text-slate-900">Anual</p>
                         </div>
-                        <p className="text-2xl font-black text-primary mb-1">R$ 39</p>
+                        <p className="text-2xl font-black text-primary mb-1">R$ {(planPrices.anual / 12).toFixed(0)}</p>
                         <p className="text-slate-500">por mês</p>
                       </button>
                     </div>
@@ -552,15 +608,15 @@ const App: React.FC = () => {
                     <h2 className="text-2xl font-black text-slate-900 mb-2">Pagamento via PIX</h2>
                     <p className="text-slate-600 font-medium">
                       Plano {selectedPlan === 'mensal' ? 'Mensal' : 'Anual'} - 
-                      <span className="text-primary font-black"> R$ {selectedPlan === 'mensal' ? '49,00' : '468,00'}</span>
-                      {selectedPlan === 'anual' && <span className="text-sm text-slate-500"> (12x R$ 39)</span>}
+                      <span className="text-primary font-black"> R$ {selectedPlan === 'mensal' ? planPrices.mensal.toFixed(2).replace('.', ',') : planPrices.anual.toFixed(2).replace('.', ',')}</span>
+                      {selectedPlan === 'anual' && <span className="text-sm text-slate-500"> (12x R$ {(planPrices.anual / 12).toFixed(0)})</span>}
                     </p>
                   </div>
 
                   {/* QR Code */}
                   <div className="bg-white border-4 border-slate-200 rounded-2xl p-6 mb-6">
                     <img 
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=00020126330014br.gov.bcb.pix011184996474171520400005303986540${selectedPlan === 'mensal' ? '5.00' : '468.00'}5802BR5925Julio Hebert6014NATAL62070503***6304`}
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=00020126330014br.gov.bcb.pix011184996474171520400005303986540${selectedPlan === 'mensal' ? planPrices.mensal.toFixed(2) : planPrices.anual.toFixed(2)}5802BR5925Julio Hebert6014NATAL62070503***6304`}
                       alt="QR Code PIX"
                       className="w-full max-w-[250px] mx-auto"
                     />
