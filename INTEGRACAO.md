@@ -19,10 +19,13 @@
 
 ### 3. Views Atualizadas
 - ✅ AuthView - Login integrado com API
-- ⏳ App.tsx - Precisa carregar dados do backend
-- ⏳ ClientsView - Precisa usar clientsService
-- ⏳ LoansView - Precisa usar loansService
-- ⏳ Dashboard - Precisa calcular com dados reais
+- ✅ App.tsx - Carrega dados do backend + CRUD com API
+- ✅ ClientFormView - Cria clientes via API
+- ✅ LoansView - Cria empréstimos via API
+- ✅ Dashboard - Pagamentos via API
+- ✅ MonthlyControlView - Pagamentos via API
+- ⏳ ClientsView - Precisa adicionar edição/exclusão
+- ⏳ CashFlowView - Precisa adicionar operações CRUD
 
 ---
 
@@ -60,17 +63,21 @@ VITE_API_URL=https://seu-backend.onrender.com
 
 ## 📋 Próximos Passos:
 
-### Fase 1: Atualizar App.tsx ⏳
-- [ ] Carregar clientes do backend
-- [ ] Carregar empréstimos do backend
-- [ ] Carregar transações do backend
-- [ ] Atualizar handlers para usar serviços
+### Fase 1: Atualizar App.tsx ✅
+- [x] Carregar clientes do backend
+- [x] Carregar empréstimos do backend
+- [x] Carregar transações do backend
+- [x] Atualizar handlers para usar serviços
+- [x] Adicionar loading states
+- [x] Fallback para modo offline
 
 ### Fase 2: Atualizar Views ⏳
-- [ ] ClientFormView - criar via API
-- [ ] LoansView - criar via API
-- [ ] Dashboard - stats com dados reais
-- [ ] MonthlyControlView - pagamentos via API
+- [x] ClientFormView - criar via API
+- [x] LoansView - criar via API
+- [x] Dashboard - pagamentos via API
+- [x] MonthlyControlView - pagamentos via API
+- [ ] ClientsView - editar/excluir via API
+- [ ] CashFlowView - operações via API
 
 ### Fase 3: Deploy Backend 🔜
 - [ ] Configurar variáveis de ambiente no Render
@@ -129,7 +136,16 @@ backend/
 **Frontend**: ✅ Pronto para produção (modo offline)  
 **Backend**: ✅ API funcionando  
 **Banco**: ✅ Schema criado no Neon  
-**Integração**: 🔄 Em progresso (40% completo)  
+**Integração**: 🔄 Em progresso (80% completo)  
+
+**Novidades neste commit**:
+- ✅ App.tsx carrega dados do backend ao fazer login
+- ✅ Loading spinner durante carregamento
+- ✅ Criação de clientes integrada com API
+- ✅ Criação de empréstimos integrada com API
+- ✅ Registro de pagamentos integrado com API
+- ✅ Transações automáticas para liberações e pagamentos
+- ✅ Fallback para modo offline em todas operações  
 
 ---
 
