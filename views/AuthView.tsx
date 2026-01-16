@@ -19,7 +19,7 @@ const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen bg-bg-dark flex items-center justify-center p-6 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]">
+    <div className="min-h-screen bg-bg-dark flex items-center justify-center p-6">
       <div className="max-w-md w-full animate-in zoom-in-95 duration-500">
         <div className="flex items-center gap-3 justify-center mb-10">
           <div className="bg-primary rounded-2xl p-3 shadow-xl shadow-primary/20">
