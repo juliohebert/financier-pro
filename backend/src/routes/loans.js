@@ -18,7 +18,7 @@ function authenticateToken(req, res, next) {
 // CRUD de empréstimos
 router.get('/', authenticateToken, async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM loans');
+    const result = await pool.query('SELECT * FROM emprestimos WHERE usuario_id = $1', [req.user.id]);
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -26,9 +26,12 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 router.post('/', authenticateToken, async (req, res) => {
-  const { client_id, amount, due_date } = req.body;
+  const { cliente_id, nome_cliente, valor_principal, taxa_juros, total_receber, data_inicio, data_vencimento } = req.body;
   try {
-    const result = await pool.query('INSERT INTO loans (client_id, amount, due_date) VALUES ($1, $2, $3) RETURNING *', [client_id, amount, due_date]);
+    const result = await pool.query(
+      'INSERT INTO emprestimos (usuario_id, cliente_id, nome_cliente, valor_principal, taxa_juros, total_receber, data_inicio, data_vencimento) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+      [req.user.id, cliente_id, nome_cliente, valor_principal, taxa_juros, total_receber, data_inicio, data_vencimento]
+    );
     res.status(201).json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
