@@ -5,6 +5,64 @@ import { pool } from '../index.js';
 
 const router = express.Router();
 
+// Middleware para verificar se é admin
+const verifyAdmin = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) {
+      return res.status(401).json({ error: 'Token não fornecido' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (decoded.funcao !== 'ADMIN') {
+      return res.status(403).json({ error: 'Acesso negado. Apenas administradores.' });
+    }
+
+    req.userId = decoded.id;
+    next();
+  } catch (error) {
+    return res.status(401).json({ error: 'Token inválido' });
+  }
+};
+
+// Listar todos os usuários (apenas para admin)
+router.get('/users', verifyAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        id, 
+        nome, 
+        email, 
+        funcao, 
+        status_licenca, 
+        plano_licenca, 
+        data_inicio_teste,
+        criado_em
+      FROM usuarios
+      ORDER BY criado_em DESC
+    `);
+
+    const users = result.rows.map(user => ({
+      id: user.id.toString(),
+      name: user.nome,
+      email: user.email,
+      role: user.funcao,
+      license: {
+        status: user.status_licenca,
+        planName: user.plano_licenca,
+        trialStartDate: user.data_inicio_teste,
+        paymentHistory: [] // TODO: buscar histórico de pagamentos
+      },
+      createdAt: user.criado_em
+    }));
+
+    res.json(users);
+  } catch (error) {
+    console.error('Erro ao buscar usuários:', error);
+    res.status(500).json({ error: 'Erro ao buscar usuários' });
+  }
+});
+
 // Login - Autenticação com banco de dados
 router.post('/login', async (req, res) => {
   try {

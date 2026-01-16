@@ -1,43 +1,11 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { GlobalUser, LicensePayment } from '../types';
-
-const MOCK_USERS: GlobalUser[] = [
-  { 
-    id: '1', 
-    name: 'Ricardo Financeiro', 
-    email: 'ricardo@exemplo.com', 
-    createdAt: '2023-10-01', 
-    license: { 
-      status: 'ATIVO', 
-      planName: 'Anual', 
-      trialStartDate: '2023-10-01',
-      paymentHistory: [
-        { id: 'pay_1', date: '2023-10-01', amount: 499.00, planName: 'Anual' }
-      ]
-    } 
-  },
-  { id: '2', name: 'Ana Empréstimos', email: 'ana@credito.com', createdAt: new Date(Date.now() - (5 * 24 * 60 * 60 * 1000)).toISOString(), license: { status: 'TESTE', planName: 'Teste', trialStartDate: new Date(Date.now() - (5 * 24 * 60 * 60 * 1000)).toISOString(), paymentHistory: [] } },
-  { id: '3', name: 'Carlos Santos', email: 'carlos@santos.com', createdAt: '2023-09-20', license: { status: 'EXPIRADO', planName: 'Mensal', trialStartDate: '2023-09-20', paymentHistory: [] } },
-  { 
-    id: '4', 
-    name: 'Beatriz Capital', 
-    email: 'beatriz@cap.com', 
-    createdAt: '2024-01-10', 
-    license: { 
-      status: 'ATIVO', 
-      planName: 'Mensal', 
-      trialStartDate: '2024-01-10',
-      paymentHistory: [
-        { id: 'pay_2', date: '2024-01-10', amount: 49.90, planName: 'Mensal' },
-        { id: 'pay_3', date: '2024-02-10', amount: 49.90, planName: 'Mensal' }
-      ]
-    } 
-  },
-];
+import { usersService } from '../services';
 
 const AdminLicenseView: React.FC = () => {
-  const [users, setUsers] = useState<GlobalUser[]>(MOCK_USERS);
+  const [users, setUsers] = useState<GlobalUser[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState<'TODOS' | 'ATIVO' | 'PENDENTE_APROVACAO' | 'TESTE' | 'EXPIRADO'>('TODOS');
   const [showPlanConfig, setShowPlanConfig] = useState(false);
@@ -54,6 +22,24 @@ const AdminLicenseView: React.FC = () => {
     { id: 'm', name: 'Mensal', price: 49.90 },
     { id: 'a', name: 'Anual', price: 499.00 }
   ]);
+
+  // Carregar usuários do backend
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      const data = await usersService.getAll();
+      setUsers(data);
+    } catch (error) {
+      console.error('Erro ao carregar usuários:', error);
+      alert('Erro ao carregar usuários. Verifique sua conexão.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const metrics = useMemo(() => {
     const activeUsers = users.filter(u => u.license.status === 'ATIVO');
@@ -177,7 +163,16 @@ const AdminLicenseView: React.FC = () => {
 
   return (
     <div className="p-8 max-w-[1200px] mx-auto animate-in fade-in duration-500 pb-20">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+      {loading ? (
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-slate-600 font-medium">Carregando usuários...</p>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
         <div>
           <h1 className="text-4xl font-black text-bg-dark tracking-tight flex items-center gap-3">
             <span className="material-symbols-outlined text-4xl text-primary-dark">hub</span>
@@ -600,6 +595,8 @@ const AdminLicenseView: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );
