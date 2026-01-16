@@ -402,6 +402,12 @@ const App: React.FC = () => {
       <main className="flex-1 overflow-y-auto relative">
         {isLoadingData && (
           <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-slate-600 font-medium">Carregando dados...</p>
+            </div>
+          </div>
+        )}
         
         {/* Modal de Boas-Vindas */}
         {showWelcomeModal && (
@@ -513,13 +519,6 @@ const App: React.FC = () => {
                   Continuar com Teste Grátis (14 dias)
                 </button>
               </div>
-            </div>
-          </div>
-        )}
-        
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-slate-600 font-medium">Carregando dados...</p>
             </div>
           </div>
         )}
