@@ -94,7 +94,11 @@ const App: React.FC = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [settings, setSettings] = useState<AppSettings>({ defaultInterestRate: 5 });
   const [isLoadingData, setIsLoadingData] = useState(false);
-  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(() => {
+    // Verificar se deve mostrar modal ao carregar
+    const shouldShow = localStorage.getItem('showWelcomeModal');
+    return shouldShow === 'true';
+  });
   const [selectedPlan, setSelectedPlan] = useState<'mensal' | 'anual'>('anual');
 
   const today = new Date().toISOString().split('T')[0];
@@ -260,7 +264,12 @@ const App: React.FC = () => {
     
     // Mostrar modal de boas-vindas para usuários em teste
     if (!isAdmin && user?.statusLicenca === 'TESTE') {
-      setShowWelcomeModal(true);
+      // Verificar se já mostrou o modal antes
+      const hasSeenModal = localStorage.getItem('hasSeenWelcomeModal');
+      if (!hasSeenModal) {
+        localStorage.setItem('showWelcomeModal', 'true');
+        setShowWelcomeModal(true);
+      }
     }
     
     if (isAdmin) {
@@ -298,6 +307,14 @@ const App: React.FC = () => {
         planName: selectedPlan === 'mensal' ? 'Pro Mensal' : 'Pro Anual'
       }
     }));
+    localStorage.removeItem('showWelcomeModal');
+    localStorage.setItem('hasSeenWelcomeModal', 'true');
+    setShowWelcomeModal(false);
+  };
+  
+  const handleContinueWithTrial = () => {
+    localStorage.removeItem('showWelcomeModal');
+    localStorage.setItem('hasSeenWelcomeModal', 'true');
     setShowWelcomeModal(false);
   };
 
@@ -481,7 +498,7 @@ const App: React.FC = () => {
               
               <div className="space-y-3">
                 <button 
-                  onClick={handleSubscribe}
+                  onClick={handleContinueWithTrial
                   className="w-full h-14 bg-primary hover:bg-primary-dark text-white font-black rounded-xl transition-all flex items-center justify-center gap-2"
                 >
                   <span className="material-symbols-outlined">credit_card</span>
