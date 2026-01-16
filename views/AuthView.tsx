@@ -33,6 +33,11 @@ const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
         // Registro
         await authService.register(nome, email, senha);
         
+        // Limpar flags do localStorage para garantir que modal apareça no primeiro login
+        localStorage.removeItem('hasSeenWelcomeModal');
+        localStorage.removeItem('hasSubscribed');
+        localStorage.removeItem('showWelcomeModal');
+        
         // Limpar campos
         setNome('');
         setSenha('');

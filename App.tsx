@@ -250,24 +250,37 @@ const App: React.FC = () => {
 
   const handleLogin = (email: string, isAdmin: boolean) => {
     const user = authService.getCurrentUser();
+    
+    // Definir status da licença do usuário
+    const userLicenseStatus = user?.statusLicenca || 'TESTE';
+    
     setAuth(prev => ({
       ...prev,
       isAuthenticated: true,
       email: user?.email || email,
       role: isAdmin ? 'ADMIN' : 'USER',
       name: user?.nome || email.split('@')[0].toUpperCase(),
-      license: isAdmin ? { status: 'ATIVO', planName: 'Super-Admin', trialStartDate: '' } : prev.license
+      license: isAdmin 
+        ? { status: 'ATIVO', planName: 'Super-Admin', trialStartDate: '' } 
+        : {
+            status: userLicenseStatus,
+            planName: user?.planoLicenca || 'Teste',
+            trialStartDate: user?.dataInicioTeste || new Date().toISOString()
+          }
     }));
     
-    // Mostrar modal de boas-vindas para usuários que não assinaram
-    if (!isAdmin) {
+    // Mostrar modal de boas-vindas para usuários em TESTE que nunca assinaram
+    if (!isAdmin && userLicenseStatus === 'TESTE') {
       const hasSeenModal = localStorage.getItem('hasSeenWelcomeModal');
       const hasSubscribed = localStorage.getItem('hasSubscribed');
       
       // Mostrar modal se nunca viu E nunca assinou
       if (!hasSeenModal && !hasSubscribed) {
+        console.log('🎉 Mostrando modal de boas-vindas para usuário em teste');
         localStorage.setItem('showWelcomeModal', 'true');
         setShowWelcomeModal(true);
+      } else {
+        console.log('ℹ️ Modal não exibida:', { hasSeenModal, hasSubscribed });
       }
     }
     
