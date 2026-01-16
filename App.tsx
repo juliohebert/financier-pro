@@ -14,6 +14,7 @@ import AuthView from './views/AuthView';
 import UpgradeView from './views/UpgradeView';
 import AdminLicenseView from './views/AdminLicenseView';
 import { AppView, Client, Transaction, Loan, PaymentEntry, AppSettings, UserAuth } from './types';
+import { authService, clientsService, loansService, transactionsService } from './services';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -74,7 +75,7 @@ const INITIAL_CLIENTS: Omit<Client, 'totalOpen' | 'status'>[] = [
 
 const App: React.FC = () => {
   const [auth, setAuth] = useState<UserAuth>({
-    isAuthenticated: false,
+    isAuthenticated: authService.isAuthenticated(),
     name: '',
     email: '',
     role: 'USER',
@@ -92,8 +93,88 @@ const App: React.FC = () => {
   const [loans, setLoans] = useState<Loan[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [settings, setSettings] = useState<AppSettings>({ defaultInterestRate: 5 });
+  const [isLoadingData, setIsLoadingData] = useState(false);
 
   const today = new Date().toISOString().split('T')[0];
+
+  // Carregar dados do backend ao fazer login
+  useEffect(() => {
+    const loadData = async () => {
+      if (!auth.isAuthenticated) return;
+      
+      setIsLoadingData(true);
+      try {
+        // Carregar dados em paralelo
+        const [clientsData, loansData, transactionsData] = await Promise.all([
+          clientsService.getAll().catch(err => {
+            console.warn('Erro ao carregar clientes, usando dados locais:', err);
+            return [];
+          }),
+          loansService.getAll().catch(err => {
+            console.warn('Erro ao carregar empréstimos, usando dados locais:', err);
+            return [];
+          }),
+          transactionsService.getAll().catch(err => {
+            console.warn('Erro ao carregar transações, usando dados locais:', err);
+            return [];
+          })
+        ]);
+
+        // Atualizar estados apenas se recebeu dados
+        if (clientsData && clientsData.length > 0) {
+          const mappedClients = clientsData.map(c => ({
+            id: c.id?.toString() || '',
+            name: c.nome || '',
+            document: c.documento || '',
+            initials: (c.nome?.split(' ')[0][0] + (c.nome?.split(' ').pop()?.[0] || '')).toUpperCase()
+          }));
+          setBaseClients(mappedClients);
+        }
+
+        if (loansData && loansData.length > 0) {
+          const mappedLoans = loansData.map(l => ({
+            id: l.id?.toString() || '',
+            clientId: l.cliente_id?.toString() || '',
+            clientName: l.nome_cliente || '',
+            amount: Number(l.valor_emprestado) || 0,
+            interestRate: Number(l.taxa_juros) || 5,
+            startDate: l.data_liberacao || today,
+            dueDate: l.data_vencimento || today,
+            totalToReceive: Number(l.valor_total) || 0,
+            amountPaid: Number(l.valor_pago) || 0,
+            status: l.status || 'ATIVO',
+            payments: []
+          }));
+          setLoans(mappedLoans);
+        }
+
+        if (transactionsData && transactionsData.length > 0) {
+          const mappedTransactions = transactionsData.map(t => ({
+            id: t.id?.toString() || '',
+            date: t.data || today,
+            description: t.descricao || '',
+            category: t.categoria || '',
+            type: t.tipo || 'ENTRADA',
+            value: Number(t.valor) || 0,
+            status: 'LIQUIDADO'
+          }));
+          setTransactions(mappedTransactions);
+        }
+
+        console.log('✅ Dados carregados do backend:', {
+          clientes: clientsData?.length || 0,
+          empréstimos: loansData?.length || 0,
+          transações: transactionsData?.length || 0
+        });
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
+
+    loadData();
+  }, [auth.isAuthenticated]);
 
   useEffect(() => {
     try {
@@ -165,12 +246,13 @@ const App: React.FC = () => {
   };
 
   const handleLogin = (email: string, isAdmin: boolean) => {
+    const user = authService.getCurrentUser();
     setAuth(prev => ({
       ...prev,
       isAuthenticated: true,
-      email: email,
+      email: user?.email || email,
       role: isAdmin ? 'ADMIN' : 'USER',
-      name: email.split('@')[0].toUpperCase(),
+      name: user?.nome || email.split('@')[0].toUpperCase(),
       license: isAdmin ? { status: 'ATIVO', planName: 'Super-Admin', trialStartDate: '' } : prev.license
     }));
     if (isAdmin) {
@@ -181,6 +263,7 @@ const App: React.FC = () => {
   };
 
   const handleLogout = () => {
+    authService.logout();
     setAuth({
       isAuthenticated: false,
       name: '',
@@ -192,6 +275,9 @@ const App: React.FC = () => {
         planName: 'Teste'
       }
     });
+    setBaseClients(INITIAL_CLIENTS);
+    setLoans([]);
+    setTransactions([]);
     setCurrentView(AppView.DASHBOARD);
   };
 
@@ -207,35 +293,57 @@ const App: React.FC = () => {
     setCurrentView(AppView.DASHBOARD);
   };
 
-  const handleRegisterPayment = (loanId: string, value: number, isInterestOnly: boolean) => {
-    const paymentDate = today;
-    const newPayment: PaymentEntry = {
-      id: Math.random().toString(36).substr(2, 9),
-      date: paymentDate,
-      value: value,
-      type: isInterestOnly ? 'JUROS' : 'AMORTIZACAO'
-    };
+  const handleRegisterPayment = async (loanId: string, value: number, isInterestOnly: boolean) => {
+    try {
+      const paymentDate = today;
+      const targetLoan = loans.find(l => l.id === loanId);
+      
+      if (!targetLoan) return;
 
-    setLoans(prev => prev.map(loan => {
-      if (loan.id === loanId) {
-        let newDueDate = loan.dueDate;
-        if (isInterestOnly) {
-          const d = new Date(loan.dueDate);
-          d.setMonth(d.getMonth() + 1);
-          newDueDate = d.toISOString().split('T')[0];
+      // Tentar registrar pagamento no backend
+      await loansService.registerPayment(parseInt(loanId), {
+        valor: value,
+        tipo: isInterestOnly ? 'JUROS' : 'AMORTIZACAO',
+        data_pagamento: paymentDate
+      }).catch(err => {
+        console.warn('Erro ao registrar pagamento na API, salvando localmente:', err);
+      });
+
+      // Atualizar estado local
+      const newPayment: PaymentEntry = {
+        id: Math.random().toString(36).substr(2, 9),
+        date: paymentDate,
+        value: value,
+        type: isInterestOnly ? 'JUROS' : 'AMORTIZACAO'
+      };
+
+      setLoans(prev => prev.map(loan => {
+        if (loan.id === loanId) {
+          let newDueDate = loan.dueDate;
+          if (isInterestOnly) {
+            const d = new Date(loan.dueDate);
+            d.setMonth(d.getMonth() + 1);
+            newDueDate = d.toISOString().split('T')[0];
+          }
+          return { 
+            ...loan, 
+            dueDate: newDueDate,
+            amountPaid: loan.amountPaid + value,
+            payments: [...loan.payments, newPayment]
+          };
         }
-        return { 
-          ...loan, 
-          dueDate: newDueDate,
-          amountPaid: loan.amountPaid + value,
-          payments: [...loan.payments, newPayment]
-        };
-      }
-      return loan;
-    }));
+        return loan;
+      }));
 
-    const targetLoan = loans.find(l => l.id === loanId);
-    if (targetLoan) {
+      // Registrar transação de entrada
+      await transactionsService.create({
+        data: paymentDate,
+        descricao: `${isInterestOnly ? 'Juros' : 'Amortização'}: ${targetLoan.clientName}`,
+        categoria: 'Recebimento',
+        tipo: 'ENTRADA',
+        valor: value
+      }).catch(err => console.warn('Erro ao criar transação:', err));
+
       setTransactions(prev => [...prev, {
         id: `T-${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
         date: paymentDate,
@@ -245,6 +353,9 @@ const App: React.FC = () => {
         value: value,
         status: 'LIQUIDADO'
       }]);
+    } catch (error) {
+      console.error('Erro ao registrar pagamento:', error);
+      alert('Erro ao registrar pagamento. Tente novamente.');
     }
   };
 
@@ -263,6 +374,14 @@ const App: React.FC = () => {
     <div className="flex h-screen overflow-hidden bg-bg-light">
       <Sidebar activeView={currentView} onViewChange={(view) => handleNavigate(view)} user={auth} onLogout={handleLogout} />
       <main className="flex-1 overflow-y-auto relative">
+        {isLoadingData && (
+          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-slate-600 font-medium">Carregando dados...</p>
+            </div>
+          </div>
+        )}
         {accessDenied ? (
           <UpgradeView auth={auth} onSubscribe={handleSubscribe} />
         ) : (
@@ -290,33 +409,122 @@ const App: React.FC = () => {
                 clients={processedClients} 
               />
             )}
-            {currentView === AppView.CLIENT_FORM && auth.role === 'USER' && <ClientFormView onNavigate={(view) => handleNavigate(view)} onAddClient={(c) => {
-               const initials = (c.name.split(' ')[0][0] + (c.name.split(' ').pop()?.[0] || '')).toUpperCase();
-               setBaseClients(prev => [{...c, id: Math.random().toString(36).substr(2, 9), initials}, ...prev]);
-               setCurrentView(AppView.CLIENTS);
+            {currentView === AppView.CLIENT_FORM && auth.role === 'USER' && <ClientFormView onNavigate={(view) => handleNavigate(view)} onAddClient={async (c) => {
+               try {
+                 const initials = (c.name.split(' ')[0][0] + (c.name.split(' ').pop()?.[0] || '')).toUpperCase();
+                 
+                 // Tentar criar no backend
+                 const novoCliente = await clientsService.create({
+                   nome: c.name,
+                   documento: c.document
+                 }).catch(err => {
+                   console.warn('Erro ao criar cliente na API, salvando localmente:', err);
+                   return null;
+                 });
+
+                 if (novoCliente) {
+                   // Adicionar cliente com ID do backend
+                   setBaseClients(prev => [{
+                     id: novoCliente.id?.toString() || Math.random().toString(36).substr(2, 9),
+                     name: novoCliente.nome || c.name,
+                     document: novoCliente.documento || c.document,
+                     initials
+                   }, ...prev]);
+                 } else {
+                   // Fallback: adicionar localmente
+                   setBaseClients(prev => [{
+                     ...c,
+                     id: Math.random().toString(36).substr(2, 9),
+                     initials
+                   }, ...prev]);
+                 }
+                 
+                 setCurrentView(AppView.CLIENTS);
+               } catch (error) {
+                 console.error('Erro ao adicionar cliente:', error);
+                 alert('Erro ao adicionar cliente. Tente novamente.');
+               }
             }} />}
             {currentView === AppView.LOANS && auth.role === 'USER' && (
               <LoansView 
                 clients={processedClients} 
-                onAddLoan={(loan) => {
-                  const newLoan: Loan = {
-                    ...loan,
-                    id: `L-${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
-                    status: 'ATIVO',
-                    amountPaid: 0,
-                    payments: []
-                  };
-                  setLoans(prev => [newLoan, ...prev]);
-                  setTransactions(prev => [...prev, {
-                    id: `T-${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
-                    date: loan.startDate,
-                    description: `Empréstimo Liberado: ${loan.clientName}`,
-                    category: 'Empréstimos',
-                    type: 'SAÍDA',
-                    value: loan.amount,
-                    status: 'LIQUIDADO'
-                  }]);
-                  setCurrentView(AppView.DASHBOARD);
+                onAddLoan={async (loan) => {
+                  try {
+                    // Tentar criar no backend
+                    const novoEmprestimo = await loansService.create({
+                      cliente_id: parseInt(loan.clientId),
+                      nome_cliente: loan.clientName,
+                      valor_emprestado: loan.amount,
+                      taxa_juros: loan.interestRate,
+                      data_liberacao: loan.startDate,
+                      data_vencimento: loan.dueDate,
+                      valor_total: loan.totalToReceive
+                    }).catch(err => {
+                      console.warn('Erro ao criar empréstimo na API, salvando localmente:', err);
+                      return null;
+                    });
+
+                    if (novoEmprestimo) {
+                      // Adicionar empréstimo com ID do backend
+                      const newLoan: Loan = {
+                        id: novoEmprestimo.id?.toString() || `L-${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
+                        clientId: loan.clientId,
+                        clientName: loan.clientName,
+                        amount: loan.amount,
+                        interestRate: loan.interestRate,
+                        startDate: loan.startDate,
+                        dueDate: loan.dueDate,
+                        totalToReceive: loan.totalToReceive,
+                        status: 'ATIVO',
+                        amountPaid: 0,
+                        payments: []
+                      };
+                      setLoans(prev => [newLoan, ...prev]);
+
+                      // Registrar transação de saída
+                      await transactionsService.create({
+                        data: loan.startDate,
+                        descricao: `Empréstimo Liberado: ${loan.clientName}`,
+                        categoria: 'Empréstimos',
+                        tipo: 'SAIDA',
+                        valor: loan.amount
+                      }).catch(err => console.warn('Erro ao criar transação:', err));
+
+                      setTransactions(prev => [...prev, {
+                        id: `T-${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
+                        date: loan.startDate,
+                        description: `Empréstimo Liberado: ${loan.clientName}`,
+                        category: 'Empréstimos',
+                        type: 'SAÍDA',
+                        value: loan.amount,
+                        status: 'LIQUIDADO'
+                      }]);
+                    } else {
+                      // Fallback: adicionar localmente
+                      const newLoan: Loan = {
+                        ...loan,
+                        id: `L-${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
+                        status: 'ATIVO',
+                        amountPaid: 0,
+                        payments: []
+                      };
+                      setLoans(prev => [newLoan, ...prev]);
+                      setTransactions(prev => [...prev, {
+                        id: `T-${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
+                        date: loan.startDate,
+                        description: `Empréstimo Liberado: ${loan.clientName}`,
+                        category: 'Empréstimos',
+                        type: 'SAÍDA',
+                        value: loan.amount,
+                        status: 'LIQUIDADO'
+                      }]);
+                    }
+
+                    setCurrentView(AppView.DASHBOARD);
+                  } catch (error) {
+                    console.error('Erro ao adicionar empréstimo:', error);
+                    alert('Erro ao adicionar empréstimo. Tente novamente.');
+                  }
                 }} 
                 onNavigate={(view) => handleNavigate(view)} 
                 defaultInterest={settings.defaultInterestRate}
