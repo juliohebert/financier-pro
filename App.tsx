@@ -95,6 +95,7 @@ const App: React.FC = () => {
   const [settings, setSettings] = useState<AppSettings>({ defaultInterestRate: 5 });
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<'mensal' | 'anual'>('anual');
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -294,10 +295,10 @@ const App: React.FC = () => {
       license: {
         ...prev.license,
         status: 'ATIVO',
-        planName: 'Pro Anual'
+        planName: selectedPlan === 'mensal' ? 'Pro Mensal' : 'Pro Anual'
       }
     }));
-    setCurrentView(AppView.DASHBOARD);
+    setShowWelcomeModal(false);
   };
 
   const handleRegisterPayment = async (loanId: string, value: number, isInterestOnly: boolean) => {
@@ -421,28 +422,70 @@ const App: React.FC = () => {
               </div>
               
               <div className="border-t border-slate-200 pt-6 mb-6">
-                <p className="text-sm text-slate-600 text-center mb-4">Escolha seu plano após o período de teste:</p>
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div className="p-3 border-2 border-slate-200 rounded-xl text-center">
-                    <p className="font-black text-slate-900 mb-1">Mensal</p>
+                <p className="text-sm text-slate-600 text-center mb-4">Escolha seu plano ou continue com teste grátis:</p>
+                <div className="grid grid-cols-2 gap-3 text-xs mb-4">
+                  <button
+                    onClick={() => setSelectedPlan('mensal')}
+                    className={`p-4 border-2 rounded-xl text-center transition-all ${
+                      selectedPlan === 'mensal' 
+                        ? 'border-primary bg-primary/5' 
+                        : 'border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                        selectedPlan === 'mensal' ? 'border-primary' : 'border-slate-300'
+                      }`}>
+                        {selectedPlan === 'mensal' && (
+                          <div className="w-2 h-2 rounded-full bg-primary"></div>
+                        )}
+                      </div>
+                      <p className="font-black text-slate-900">Mensal</p>
+                    </div>
                     <p className="text-2xl font-black text-primary mb-1">R$ 49</p>
                     <p className="text-slate-500">por mês</p>
-                  </div>
-                  <div className="p-3 border-2 border-primary rounded-xl text-center relative">
+                  </button>
+                  <button
+                    onClick={() => setSelectedPlan('anual')}
+                    className={`p-4 border-2 rounded-xl text-center relative transition-all ${
+                      selectedPlan === 'anual' 
+                        ? 'border-primary bg-primary/5' 
+                        : 'border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
                     <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-black px-2 py-0.5 rounded-full">ECONOMIZE 20%</div>
-                    <p className="font-black text-slate-900 mb-1">Anual</p>
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                        selectedPlan === 'anual' ? 'border-primary' : 'border-slate-300'
+                      }`}>
+                        {selectedPlan === 'anual' && (
+                          <div className="w-2 h-2 rounded-full bg-primary"></div>
+                        )}
+                      </div>
+                      <p className="font-black text-slate-900">Anual</p>
+                    </div>
                     <p className="text-2xl font-black text-primary mb-1">R$ 39</p>
                     <p className="text-slate-500">por mês</p>
-                  </div>
+                  </button>
                 </div>
               </div>
               
-              <button 
-                onClick={() => setShowWelcomeModal(false)}
-                className="w-full h-14 bg-primary hover:bg-primary-dark text-white font-black rounded-xl transition-all"
-              >
-                Começar Agora
-              </button>
+              <div className="space-y-3">
+                <button 
+                  onClick={handleSubscribe}
+                  className="w-full h-14 bg-primary hover:bg-primary-dark text-white font-black rounded-xl transition-all flex items-center justify-center gap-2"
+                >
+                  <span className="material-symbols-outlined">credit_card</span>
+                  Assinar Plano {selectedPlan === 'mensal' ? 'Mensal' : 'Anual'}
+                </button>
+                
+                <button 
+                  onClick={() => setShowWelcomeModal(false)}
+                  className="w-full h-14 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-all"
+                >
+                  Continuar com Teste Grátis (14 dias)
+                </button>
+              </div>
             </div>
           </div>
         )}
