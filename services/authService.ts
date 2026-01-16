@@ -28,10 +28,7 @@ export const authService = {
   async register(nome: string, email: string, senha: string): Promise<LoginResponse> {
     const response = await api.post('/auth/register', { nome, email, senha });
     
-    // Salvar token e usuário
-    localStorage.setItem('token', response.data.token);
-    localStorage.setItem('user', JSON.stringify(response.data.user));
-    
+    // NÃO salvar token automaticamente - deixar para o login posterior
     return response.data;
   },
 
