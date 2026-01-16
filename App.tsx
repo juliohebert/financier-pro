@@ -94,11 +94,7 @@ const App: React.FC = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [settings, setSettings] = useState<AppSettings>({ defaultInterestRate: 5 });
   const [isLoadingData, setIsLoadingData] = useState(false);
-  const [showWelcomeModal, setShowWelcomeModal] = useState(() => {
-    // Verificar se deve mostrar modal ao carregar
-    const shouldShow = localStorage.getItem('showWelcomeModal');
-    return shouldShow === 'true';
-  });
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<'mensal' | 'anual'>('anual');
 
   const today = new Date().toISOString().split('T')[0];
@@ -262,11 +258,13 @@ const App: React.FC = () => {
       license: isAdmin ? { status: 'ATIVO', planName: 'Super-Admin', trialStartDate: '' } : prev.license
     }));
     
-    // Mostrar modal de boas-vindas para usuários em teste
-    if (!isAdmin && user?.statusLicenca === 'TESTE') {
-      // Verificar se já mostrou o modal antes
+    // Mostrar modal de boas-vindas para usuários que não assinaram
+    if (!isAdmin) {
       const hasSeenModal = localStorage.getItem('hasSeenWelcomeModal');
-      if (!hasSeenModal) {
+      const hasSubscribed = localStorage.getItem('hasSubscribed');
+      
+      // Mostrar modal se nunca viu E nunca assinou
+      if (!hasSeenModal && !hasSubscribed) {
         localStorage.setItem('showWelcomeModal', 'true');
         setShowWelcomeModal(true);
       }
@@ -309,13 +307,16 @@ const App: React.FC = () => {
     }));
     localStorage.removeItem('showWelcomeModal');
     localStorage.setItem('hasSeenWelcomeModal', 'true');
+    localStorage.setItem('hasSubscribed', 'true');
     setShowWelcomeModal(false);
+    console.log('✅ Usuário assinou o plano:', selectedPlan);
   };
   
   const handleContinueWithTrial = () => {
     localStorage.removeItem('showWelcomeModal');
     localStorage.setItem('hasSeenWelcomeModal', 'true');
     setShowWelcomeModal(false);
+    console.log('✅ Usuário continuou com teste grátis');
   };
 
   const handleRegisterPayment = async (loanId: string, value: number, isInterestOnly: boolean) => {
