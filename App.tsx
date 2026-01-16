@@ -269,17 +269,11 @@ const App: React.FC = () => {
           }
     }));
     
-    // Mostrar modal de boas-vindas para usuários em TESTE que nunca assinaram
+    // Mostrar modal SEMPRE para usuários em TESTE (período gratuito)
+    // Só para de mostrar quando tiver plano ativo ou pagamento pendente
     if (!isAdmin && userLicenseStatus === 'TESTE') {
-      const hasSeenModal = localStorage.getItem('hasSeenWelcomeModal');
-      const hasSubscribed = localStorage.getItem('hasSubscribed');
-      
-      // Mostrar modal se está em TESTE e nunca viu e nunca assinou
-      if (!hasSeenModal && !hasSubscribed) {
-        console.log('🎉 Exibindo modal de boas-vindas');
-        localStorage.setItem('showWelcomeModal', 'true');
-        setShowWelcomeModal(true);
-      }
+      console.log('🎉 Usuário em teste - exibindo modal de planos');
+      setShowWelcomeModal(true);
     }
     
     if (isAdmin) {
@@ -323,9 +317,6 @@ const App: React.FC = () => {
         pendingPlan: selectedPlan === 'mensal' ? 'Pro Mensal' : 'Pro Anual'
       }
     }));
-    localStorage.removeItem('showWelcomeModal');
-    localStorage.setItem('hasSeenWelcomeModal', 'true');
-    localStorage.setItem('hasSubscribed', 'true');
     setShowWelcomeModal(false);
     setShowPixPayment(false);
     console.log('⏳ Pagamento enviado para aprovação. Plano:', selectedPlan);
@@ -336,8 +327,6 @@ const App: React.FC = () => {
   };
   
   const handleContinueWithTrial = () => {
-    localStorage.removeItem('showWelcomeModal');
-    localStorage.setItem('hasSeenWelcomeModal', 'true');
     setShowWelcomeModal(false);
     console.log('✅ Usuário continuou com teste grátis');
   };
