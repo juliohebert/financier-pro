@@ -24,6 +24,17 @@ export const authService = {
     return response.data;
   },
 
+  // Registro
+  async register(nome: string, email: string, senha: string): Promise<LoginResponse> {
+    const response = await api.post('/auth/register', { nome, email, senha });
+    
+    // Salvar token e usuário
+    localStorage.setItem('token', response.data.token);
+    localStorage.setItem('user', JSON.stringify(response.data.user));
+    
+    return response.data;
+  },
+
   // Logout
   logout() {
     localStorage.removeItem('token');

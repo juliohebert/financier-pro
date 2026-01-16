@@ -8,6 +8,7 @@ interface AuthViewProps {
 
 const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
   const [isLogin, setIsLogin] = useState(true);
+  const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [loading, setLoading] = useState(false);
@@ -19,23 +20,26 @@ const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
     setLoading(true);
 
     try {
-      // Tentar login real via API
-      await authService.login(email, senha);
-      const user = authService.getCurrentUser();
-      
-      if (user) {
-        onLogin(user.email, user.funcao === 'ADMIN');
+      if (isLogin) {
+        // Login
+        await authService.login(email, senha);
+        const user = authService.getCurrentUser();
+        
+        if (user) {
+          onLogin(user.email, user.funcao === 'ADMIN');
+        }
+      } else {
+        // Registro
+        await authService.register(nome, email, senha);
+        const user = authService.getCurrentUser();
+        
+        if (user) {
+          onLogin(user.email, false);
+        }
       }
     } catch (err: any) {
-      console.error('Erro no login:', err);
-      
-      // Fallback: login simulado para desenvolvimento
-      if (email) {
-        const isAdmin = email.toLowerCase().includes('admin');
-        onLogin(email, isAdmin);
-      } else {
-        setError('Erro ao fazer login. Verifique suas credenciais.');
-      }
+      console.error('Erro:', err);
+      setError(err.response?.data?.error || 'Erro ao processar solicitação');
     } finally {
       setLoading(false);
     }
@@ -65,6 +69,24 @@ const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
                 {error}
+              </div>
+            )}
+            
+            {!isLogin && (
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest px-2">Nome Completo</label>
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-300">person</span>
+                  <input 
+                    type="text" 
+                    required
+                    value={nome}
+                    onChange={(e) => setNome(e.target.value)}
+                    disabled={loading}
+                    placeholder="Seu nome completo"
+                    className="w-full h-14 bg-bg-light border-none rounded-2xl pl-12 pr-4 focus:ring-4 focus:ring-primary/20 font-bold text-slate-900 transition-all disabled:opacity-50"
+                  />
+                </div>
               </div>
             )}
             
