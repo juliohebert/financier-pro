@@ -13,12 +13,11 @@ const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
   const [senha, setSenha] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const [welcomeMessage, setWelcomeMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setSuccessMessage('');
     setLoading(true);
 
     try {
@@ -36,17 +35,14 @@ const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
         
         // Limpar campos
         setNome('');
-        setEmail('');
         setSenha('');
         
-        // Mostrar mensagem de sucesso
-        setSuccessMessage('🎉 Conta criada com sucesso! Você tem 14 dias grátis para testar todas as funcionalidades.');
+        // Manter email preenchido para facilitar login
+        // Mostrar mensagem de boas-vindas na tela de login
+        setWelcomeMessage(`Conta criada com sucesso! Faça login para começar seu período de teste gratuito de 14 dias.`);
         
-        // Mudar para tela de login após 3 segundos
-        setTimeout(() => {
-          setIsLogin(true);
-          setSuccessMessage('');
-        }, 3000);
+        // Mudar para tela de login
+        setIsLogin(true);
       }
     } catch (err: any) {
       console.error('Erro:', err);
@@ -77,9 +73,33 @@ const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {successMessage && (
-              <div className="bg-green-50 border-2 border-primary text-green-800 px-4 py-4 rounded-xl text-sm font-semibold animate-in zoom-in-95 duration-300">
-                {successMessage}
+            {welcomeMessage && isLogin && (
+              <div className="bg-green-50 border-2 border-primary p-5 rounded-2xl animate-in zoom-in-95 duration-300">
+                <div className="flex items-start gap-3">
+                  <span className="material-symbols-outlined text-primary text-3xl">celebration</span>
+                  <div>
+                    <h3 className="font-black text-green-900 mb-1">Bem-vindo ao Financier.pro!</h3>
+                    <p className="text-sm text-green-800 leading-relaxed mb-3">{welcomeMessage}</p>
+                    <div className="space-y-1 text-xs text-green-700">
+                      <p className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-sm">check_circle</span>
+                        <span>Gestão completa de empréstimos e clientes</span>
+                      </p>
+                      <p className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-sm">check_circle</span>
+                        <span>Controle de juros e pagamentos automático</span>
+                      </p>
+                      <p className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-sm">check_circle</span>
+                        <span>Relatórios e dashboard em tempo real</span>
+                      </p>
+                      <p className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-sm">check_circle</span>
+                        <span>Fluxo de caixa completo</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
             
@@ -144,7 +164,11 @@ const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
             <button 
               type="submit"
               disabled={loading}
-              className="w-full h-16 text-white font-black rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-fu{
+                setIsLogin(!isLogin);
+                setWelcomeMessage('');
+                setError('');
+              }ont-black rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
               style={{backgroundColor: loading ? '#64748b' : '#102216'}}
               onMouseEnter={(e) => {
                 if (!loading) {

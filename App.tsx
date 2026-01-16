@@ -94,6 +94,7 @@ const App: React.FC = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [settings, setSettings] = useState<AppSettings>({ defaultInterestRate: 5 });
   const [isLoadingData, setIsLoadingData] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -255,6 +256,12 @@ const App: React.FC = () => {
       name: user?.nome || email.split('@')[0].toUpperCase(),
       license: isAdmin ? { status: 'ATIVO', planName: 'Super-Admin', trialStartDate: '' } : prev.license
     }));
+    
+    // Mostrar modal de boas-vindas para usuários em teste
+    if (!isAdmin && user?.statusLicenca === 'TESTE') {
+      setShowWelcomeModal(true);
+    }
+    
     if (isAdmin) {
       setCurrentView(AppView.ADMIN_LICENSES);
     } else {
@@ -376,6 +383,70 @@ const App: React.FC = () => {
       <main className="flex-1 overflow-y-auto relative">
         {isLoadingData && (
           <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
+        
+        {/* Modal de Boas-Vindas */}
+        {showWelcomeModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl animate-in zoom-in-95 duration-300">
+              <div className="text-center mb-6">
+                <div className="inline-block p-4 bg-primary/10 rounded-full mb-4">
+                  <span className="material-symbols-outlined text-5xl text-primary">celebration</span>
+                </div>
+                <h2 className="text-3xl font-black text-slate-900 mb-2">Bem-vindo ao Financier.pro!</h2>
+                <p className="text-slate-600 font-medium">Você tem <span className="text-primary font-black">14 dias grátis</span> para explorar todas as funcionalidades</p>
+              </div>
+              
+              <div className="space-y-3 mb-6">
+                <div className="flex items-start gap-3 p-3 bg-bg-light rounded-xl">
+                  <span className="material-symbols-outlined text-primary">check_circle</span>
+                  <div>
+                    <p className="font-bold text-slate-900 text-sm">Gestão Completa</p>
+                    <p className="text-xs text-slate-600">Clientes, empréstimos e pagamentos</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 bg-bg-light rounded-xl">
+                  <span className="material-symbols-outlined text-primary">analytics</span>
+                  <div>
+                    <p className="font-bold text-slate-900 text-sm">Dashboard em Tempo Real</p>
+                    <p className="text-xs text-slate-600">Métricas e relatórios automáticos</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 bg-bg-light rounded-xl">
+                  <span className="material-symbols-outlined text-primary">account_balance_wallet</span>
+                  <div>
+                    <p className="font-bold text-slate-900 text-sm">Controle de Juros</p>
+                    <p className="text-xs text-slate-600">Cálculo automático de juros e vencimentos</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="border-t border-slate-200 pt-6 mb-6">
+                <p className="text-sm text-slate-600 text-center mb-4">Escolha seu plano após o período de teste:</p>
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div className="p-3 border-2 border-slate-200 rounded-xl text-center">
+                    <p className="font-black text-slate-900 mb-1">Mensal</p>
+                    <p className="text-2xl font-black text-primary mb-1">R$ 49</p>
+                    <p className="text-slate-500">por mês</p>
+                  </div>
+                  <div className="p-3 border-2 border-primary rounded-xl text-center relative">
+                    <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-black px-2 py-0.5 rounded-full">ECONOMIZE 20%</div>
+                    <p className="font-black text-slate-900 mb-1">Anual</p>
+                    <p className="text-2xl font-black text-primary mb-1">R$ 39</p>
+                    <p className="text-slate-500">por mês</p>
+                  </div>
+                </div>
+              </div>
+              
+              <button 
+                onClick={() => setShowWelcomeModal(false)}
+                className="w-full h-14 bg-primary hover:bg-primary-dark text-white font-black rounded-xl transition-all"
+              >
+                Começar Agora
+              </button>
+            </div>
+          </div>
+        )}
+        
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
               <p className="text-slate-600 font-medium">Carregando dados...</p>
