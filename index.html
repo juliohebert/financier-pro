@@ -12,11 +12,49 @@
             padding: 0;
             box-sizing: border-box;
         }
+        
+        /* Cores da Paleta */
+        :root {
+            --primary: #13ec5b;
+            --primary-dark: #0fd652;
+            --bg-dark: #102216;
+            --bg-light: #f6f8f6;
+            --danger: #ec1313;
+            --slate-900: #0f172a;
+            --slate-500: #64748b;
+            --slate-200: #e2e8f0;
+            --slate-100: #f1f5f9;
+        }
+        
+        /* Classes utilitárias customizadas */
+        .bg-primary { background-color: var(--primary) !important; }
+        .bg-primary-dark { background-color: var(--primary-dark) !important; }
+        .bg-bg-dark { background-color: var(--bg-dark) !important; }
+        .bg-bg-light { background-color: var(--bg-light) !important; }
+        .bg-danger { background-color: var(--danger) !important; }
+        
+        .text-primary { color: var(--primary) !important; }
+        .text-primary-dark { color: var(--primary-dark) !important; }
+        .text-bg-dark { color: var(--bg-dark) !important; }
+        .text-bg-light { color: var(--bg-light) !important; }
+        .text-danger { color: var(--danger) !important; }
+        
+        .border-primary { border-color: var(--primary) !important; }
+        .border-bg-dark { border-color: var(--bg-dark) !important; }
+        
+        .hover\:bg-primary:hover { background-color: var(--primary) !important; }
+        .hover\:bg-primary-dark:hover { background-color: var(--primary-dark) !important; }
+        .hover\:bg-bg-dark:hover { background-color: var(--bg-dark) !important; }
+        .hover\:text-primary:hover { color: var(--primary) !important; }
+        .hover\:text-bg-dark:hover { color: var(--bg-dark) !important; }
+        
+        .focus\:ring-primary:focus { outline-color: var(--primary); }
+        
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             -webkit-font-smoothing: antialiased;
-            background: #f6f8f6;
-            color: #1e293b;
+            background: var(--bg-light);
+            color: var(--slate-900);
         }
         #root {
             min-height: 100vh;
