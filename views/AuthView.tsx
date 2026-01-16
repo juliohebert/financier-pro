@@ -164,11 +164,7 @@ const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
             <button 
               type="submit"
               disabled={loading}
-              className="w-fu{
-                setIsLogin(!isLogin);
-                setWelcomeMessage('');
-                setError('');
-              }ont-black rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full h-16 text-white font-black rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
               style={{backgroundColor: loading ? '#64748b' : '#102216'}}
               onMouseEnter={(e) => {
                 if (!loading) {
@@ -192,7 +188,11 @@ const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
 
           <div className="mt-8 pt-8 border-t border-slate-100 text-center">
             <button 
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setWelcomeMessage('');
+                setError('');
+              }}
               className="text-sm font-bold text-slate-500 hover:text-primary transition-colors"
             >
               {isLogin ? 'Ainda não tem conta? Registre-se agora' : 'Já possui licença? Faça o login'}
