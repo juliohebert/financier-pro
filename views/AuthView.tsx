@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { authService } from '../services';
 
 interface AuthViewProps {
   onLogin: (email: string, isAdmin: boolean) => void;
@@ -8,13 +9,35 @@ interface AuthViewProps {
 const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) {
-      // Regra de simulação: e-mail que contém "admin" vira administrador
-      const isAdmin = email.toLowerCase().includes('admin');
-      onLogin(email, isAdmin);
+    setError('');
+    setLoading(true);
+
+    try {
+      // Tentar login real via API
+      await authService.login(email, senha);
+      const user = authService.getCurrentUser();
+      
+      if (user) {
+        onLogin(user.email, user.funcao === 'ADMIN');
+      }
+    } catch (err: any) {
+      console.error('Erro no login:', err);
+      
+      // Fallback: login simulado para desenvolvimento
+      if (email) {
+        const isAdmin = email.toLowerCase().includes('admin');
+        onLogin(email, isAdmin);
+      } else {
+        setError('Erro ao fazer login. Verifique suas credenciais.');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -39,6 +62,12 @@ const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+                {error}
+              </div>
+            )}
+            
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest px-2">E-mail Corporativo</label>
               <div className="relative">
@@ -48,8 +77,9 @@ const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  disabled={loading}
                   placeholder="exemplo@empresa.com"
-                  className="w-full h-14 bg-bg-light border-none rounded-2xl pl-12 pr-4 focus:ring-4 focus:ring-primary/20 font-bold text-slate-900 transition-all"
+                  className="w-full h-14 bg-bg-light border-none rounded-2xl pl-12 pr-4 focus:ring-4 focus:ring-primary/20 font-bold text-slate-900 transition-all disabled:opacity-50"
                 />
               </div>
               <p className="text-[9px] text-slate-400 px-2 italic">Dica: Use "admin@financier.pro" para acessar painel super-admin.</p>
@@ -62,7 +92,10 @@ const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
                 <input 
                   type="password" 
                   required
-                  className="w-full h-14 border-none rounded-2xl pl-12 pr-4 font-bold text-slate-900 transition-all focus:ring-4"
+                  value={senha}
+                  onChange={(e) => setSenha(e.target.value)}
+                  disabled={loading}
+                  className="w-full h-14 border-none rounded-2xl pl-12 pr-4 font-bold text-slate-900 transition-all focus:ring-4 disabled:opacity-50"
                   style={{backgroundColor: '#f6f8f6', outlineColor: 'rgba(19, 236, 91, 0.2)'}}
                   placeholder="••••••••"
                 />
@@ -71,19 +104,26 @@ const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
 
             <button 
               type="submit"
-              className="w-full h-16 text-white font-black rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2 group"
-              style={{backgroundColor: '#102216'}}
+              disabled={loading}
+              className="w-full h-16 text-white font-black rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{backgroundColor: loading ? '#64748b' : '#102216'}}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#13ec5b';
-                e.currentTarget.style.color = '#102216';
+                if (!loading) {
+                  e.currentTarget.style.backgroundColor = '#13ec5b';
+                  e.currentTarget.style.color = '#102216';
+                }
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#102216';
-                e.currentTarget.style.color = '#ffffff';
+                if (!loading) {
+                  e.currentTarget.style.backgroundColor = '#102216';
+                  e.currentTarget.style.color = '#ffffff';
+                }
               }}
             >
-              {isLogin ? 'Entrar no Sistema' : 'Criar minha Conta'}
-              <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+              {loading ? 'Entrando...' : (isLogin ? 'Entrar no Sistema' : 'Criar minha Conta')}
+              <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">
+                {loading ? 'hourglass_empty' : 'arrow_forward'}
+              </span>
             </button>
           </form>
 
