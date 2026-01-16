@@ -39,7 +39,7 @@ const MOCK_USERS: GlobalUser[] = [
 const AdminLicenseView: React.FC = () => {
   const [users, setUsers] = useState<GlobalUser[]>(MOCK_USERS);
   const [filter, setFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'TODOS' | 'ATIVO' | 'TESTE' | 'EXPIRADO'>('TODOS');
+  const [statusFilter, setStatusFilter] = useState<'TODOS' | 'ATIVO' | 'PENDENTE_APROVACAO' | 'TESTE' | 'EXPIRADO'>('TODOS');
   const [showPlanConfig, setShowPlanConfig] = useState(false);
   const [selectedUserForPay, setSelectedUserForPay] = useState<GlobalUser | null>(null);
   const [viewingHistoryUser, setViewingHistoryUser] = useState<GlobalUser | null>(null);
@@ -67,10 +67,11 @@ const AdminLicenseView: React.FC = () => {
 
     const testing = users.filter(u => u.license.status === 'TESTE').length;
     const expired = users.filter(u => u.license.status === 'EXPIRADO' || u.license.status === 'INATIVO').length;
+    const pending = users.filter(u => u.license.status === 'PENDENTE_APROVACAO').length;
     const total = users.length;
     const conversionRate = total > 0 ? (activeUsers.length / total) * 100 : 0;
 
-    return { mrr, testing, expired, conversionRate };
+    return { mrr, testing, expired, pending, conversionRate };
   }, [users, plans]);
 
   const handleCreateUser = (e: React.FormEvent) => {
@@ -126,6 +127,46 @@ const AdminLicenseView: React.FC = () => {
       } 
     } : u));
     setSelectedUserForPay(null);
+  };
+
+  const handleApprovePayment = (userId: string) => {
+    const user = users.find(u => u.id === userId);
+    if (!user || !user.license.pendingPlan) return;
+
+    const plan = plans.find(p => p.name === user.license.pendingPlan);
+    const newPayment: LicensePayment = {
+      id: `pay_${Math.random().toString(36).substr(2, 9)}`,
+      date: new Date().toISOString(),
+      amount: plan ? plan.price : 0,
+      planName: user.license.pendingPlan
+    };
+
+    setUsers(prev => prev.map(u => u.id === userId ? { 
+      ...u, 
+      license: { 
+        ...u.license, 
+        status: 'ATIVO', 
+        planName: user.license.pendingPlan || 'Teste',
+        pendingPlan: undefined,
+        paymentHistory: [...(u.license.paymentHistory || []), newPayment]
+      } 
+    } : u));
+    alert(`✅ Pagamento aprovado! ${user.name} agora tem acesso ao plano ${user.license.pendingPlan}.`);
+  };
+
+  const handleRejectPayment = (userId: string) => {
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+
+    setUsers(prev => prev.map(u => u.id === userId ? { 
+      ...u, 
+      license: { 
+        ...u.license, 
+        status: 'TESTE',
+        pendingPlan: undefined
+      } 
+    } : u));
+    alert(`❌ Pagamento rejeitado. ${user.name} voltou para o período de teste.`);
   };
 
   const filteredUsers = users.filter(u => {
@@ -199,18 +240,68 @@ const AdminLicenseView: React.FC = () => {
           <p className="text-2xl font-black text-primary-dark">R$ {metrics.mrr.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
         </div>
         <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Em Teste (Trial)</p>
-          <p className="text-2xl font-black text-blue-600">{metrics.testing} Usuários</p>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Em Teste</p>
+          <p className="text-2xl font-black text-blue-600">{metrics.testing}</p>
         </div>
         <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Taxa Conversão</p>
-          <p className="text-2xl font-black text-orange-500">{metrics.conversionRate.toFixed(1)}%</p>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Pendentes</p>
+          <p className="text-2xl font-black text-orange-600">{metrics.pending}</p>
         </div>
         <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Bloqueados / Expirados</p>
-          <p className="text-2xl font-black text-red-500">{metrics.expired} Clientes</p>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Conversão</p>
+          <p className="text-2xl font-black text-green-600">{metrics.conversionRate.toFixed(1)}%</p>
         </div>
       </div>
+
+      {/* Seção de Aprovações Pendentes */}
+      {metrics.pending > 0 && (
+        <div className="bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-200 p-8 rounded-[2.5rem] mb-10 animate-in slide-in-from-top-4">
+          <div className="flex items-center gap-3 mb-6">
+            <span className="material-symbols-outlined text-3xl text-orange-600">pending_actions</span>
+            <div>
+              <h3 className="text-xl font-black text-slate-900">Aprovações Pendentes</h3>
+              <p className="text-sm text-slate-600 font-medium">{metrics.pending} pagamento(s) aguardando confirmação</p>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            {users.filter(u => u.license.status === 'PENDENTE_APROVACAO').map(user => (
+              <div key={user.id} className="bg-white p-6 rounded-2xl border border-orange-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="size-12 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center font-black text-lg">
+                    {user.name.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="font-black text-slate-900">{user.name}</p>
+                    <p className="text-sm text-slate-600 font-medium">{user.email}</p>
+                    <p className="text-xs text-orange-700 font-bold mt-1 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-sm">payments</span>
+                      Plano solicitado: {user.license.pendingPlan}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => handleApprovePayment(user.id)}
+                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 h-12 rounded-xl font-bold transition-all"
+                  >
+                    <span className="material-symbols-outlined">check_circle</span>
+                    Aprovar
+                  </button>
+                  <button
+                    onClick={() => handleRejectPayment(user.id)}
+                    className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 h-12 rounded-xl font-bold transition-all"
+                  >
+                    <span className="material-symbols-outlined">cancel</span>
+                    Rejeitar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-xl overflow-hidden">
         <div className="p-8 border-b bg-slate-50 flex flex-col lg:flex-row items-center gap-6">
@@ -224,16 +315,16 @@ const AdminLicenseView: React.FC = () => {
             />
           </div>
           
-          <div className="flex gap-2 bg-slate-200 p-1.5 rounded-2xl w-full lg:w-auto">
-            {(['TODOS', 'ATIVO', 'TESTE', 'EXPIRADO'] as const).map((s) => (
+          <div className="flex gap-2 bg-slate-200 p-1.5 rounded-2xl w-full lg:w-auto overflow-x-auto">
+            {(['TODOS', 'ATIVO', 'PENDENTE_APROVACAO', 'TESTE', 'EXPIRADO'] as const).map((s) => (
               <button
                 key={s}
                 onClick={() => setStatusFilter(s)}
-                className={`flex-1 lg:flex-none px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${
+                className={`flex-1 lg:flex-none px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all whitespace-nowrap ${
                   statusFilter === s ? 'bg-white text-bg-dark shadow-sm' : 'text-slate-500 hover:text-slate-700'
                 }`}
               >
-                {s}
+                {s === 'PENDENTE_APROVACAO' ? 'PENDENTES' : s}
               </button>
             ))}
           </div>
@@ -275,10 +366,14 @@ const AdminLicenseView: React.FC = () => {
                     <td className="px-8 py-6 text-center">
                         <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase ${
                           user.license.status === 'ATIVO' ? 'bg-green-100 text-green-700' :
+                          user.license.status === 'PENDENTE_APROVACAO' ? 'bg-orange-100 text-orange-700' :
                           user.license.status === 'EXPIRADO' || user.license.status === 'INATIVO' ? 'bg-red-100 text-red-700' :
                           'bg-blue-100 text-blue-700'
                         }`}>
-                          {user.license.status === 'ATIVO' ? 'LICENCIADO' : user.license.status === 'INATIVO' ? 'SUSPENSO' : user.license.status}
+                          {user.license.status === 'ATIVO' ? 'LICENCIADO' : 
+                           user.license.status === 'PENDENTE_APROVACAO' ? 'AGUARDANDO' :
+                           user.license.status === 'INATIVO' ? 'SUSPENSO' : 
+                           user.license.status}
                         </span>
                     </td>
                     <td className="px-8 py-6 text-right">

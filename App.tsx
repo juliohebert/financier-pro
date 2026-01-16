@@ -308,8 +308,8 @@ const App: React.FC = () => {
       ...prev,
       license: {
         ...prev.license,
-        status: 'ATIVO',
-        planName: selectedPlan === 'mensal' ? 'Pro Mensal' : 'Pro Anual'
+        status: 'PENDENTE_APROVACAO',
+        pendingPlan: selectedPlan === 'mensal' ? 'Pro Mensal' : 'Pro Anual'
       }
     }));
     localStorage.removeItem('showWelcomeModal');
@@ -317,7 +317,7 @@ const App: React.FC = () => {
     localStorage.setItem('hasSubscribed', 'true');
     setShowWelcomeModal(false);
     setShowPixPayment(false);
-    console.log('✅ Usuário completou pagamento do plano:', selectedPlan);
+    console.log('⏳ Pagamento enviado para aprovação. Plano:', selectedPlan);
   };
   
   const handleBackFromPix = () => {

@@ -21,11 +21,12 @@ export interface LicensePayment {
 }
 
 export interface LicenseInfo {
-  status: 'TESTE' | 'ATIVO' | 'EXPIRADO' | 'INATIVO';
+  status: 'TESTE' | 'ATIVO' | 'EXPIRADO' | 'INATIVO' | 'PENDENTE_APROVACAO';
   trialStartDate: string;
   expiryDate?: string;
   planName: string;
   paymentHistory?: LicensePayment[];
+  pendingPlan?: string;
 }
 
 export interface UserAuth {
