@@ -387,8 +387,17 @@ const App: React.FC = () => {
         
         {/* Modal de Boas-Vindas */}
         {showWelcomeModal && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl animate-in zoom-in-95 duration-300">
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            onClick={(e) => {
+              // Impedir fechar clicando no backdrop
+              e.stopPropagation();
+            }}
+          >
+            <div 
+              className="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl animate-in zoom-in-95 duration-300"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="text-center mb-6">
                 <div className="inline-block p-4 bg-primary/10 rounded-full mb-4">
                   <span className="material-symbols-outlined text-5xl text-primary">celebration</span>
