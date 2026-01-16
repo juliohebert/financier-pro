@@ -13,10 +13,12 @@ const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
   const [senha, setSenha] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccessMessage('');
     setLoading(true);
 
     try {
@@ -31,11 +33,20 @@ const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
       } else {
         // Registro
         await authService.register(nome, email, senha);
-        const user = authService.getCurrentUser();
         
-        if (user) {
-          onLogin(user.email, false);
-        }
+        // Limpar campos
+        setNome('');
+        setEmail('');
+        setSenha('');
+        
+        // Mostrar mensagem de sucesso
+        setSuccessMessage('🎉 Conta criada com sucesso! Você tem 14 dias grátis para testar todas as funcionalidades.');
+        
+        // Mudar para tela de login após 3 segundos
+        setTimeout(() => {
+          setIsLogin(true);
+          setSuccessMessage('');
+        }, 3000);
       }
     } catch (err: any) {
       console.error('Erro:', err);
@@ -66,6 +77,12 @@ const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {successMessage && (
+              <div className="bg-green-50 border-2 border-primary text-green-800 px-4 py-4 rounded-xl text-sm font-semibold animate-in zoom-in-95 duration-300">
+                {successMessage}
+              </div>
+            )}
+            
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
                 {error}
