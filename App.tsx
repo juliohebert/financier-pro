@@ -498,7 +498,7 @@ const App: React.FC = () => {
               
               <div className="space-y-3">
                 <button 
-                  onClick={handleContinueWithTrial
+                  onClick={handleSubscribe}
                   className="w-full h-14 bg-primary hover:bg-primary-dark text-white font-black rounded-xl transition-all flex items-center justify-center gap-2"
                 >
                   <span className="material-symbols-outlined">credit_card</span>
@@ -506,7 +506,7 @@ const App: React.FC = () => {
                 </button>
                 
                 <button 
-                  onClick={() => setShowWelcomeModal(false)}
+                  onClick={handleContinueWithTrial}
                   className="w-full h-14 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-all"
                 >
                   Continuar com Teste Grátis (14 dias)
