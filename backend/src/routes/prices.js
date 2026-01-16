@@ -2,6 +2,8 @@ import express from 'express';
 import { pool } from '../index.js';
 import jwt from 'jsonwebtoken';
 
+const router = express.Router();
+
 // Middleware para verificar admin
 const verifyAdmin = (req, res, next) => {
   try {
@@ -76,7 +78,5 @@ router.patch('/', verifyAdmin, async (req, res) => {
     res.status(500).json({ error: 'Erro ao atualizar preços' });
   }
 });
-
-const router = express.Router();
 
 export default router;
