@@ -213,13 +213,14 @@ const App: React.FC = () => {
             id: l.id?.toString() || '',
             clientId: l.cliente_id?.toString() || '',
             clientName: l.nome_cliente || '',
-            amount: Number(l.valor_emprestado) || 0,
+            amount: Number(l.valor_principal) || 0,
             interestRate: Number(l.taxa_juros) || 5,
-            startDate: l.data_liberacao || today,
+            startDate: l.data_inicio || today,
             dueDate: l.data_vencimento || today,
-            totalToReceive: Number(l.valor_total) || 0,
+            totalToReceive: Number(l.total_receber) || 0,
             amountPaid: Number(l.valor_pago) || 0,
-            status: l.status || 'ATIVO',
+            saldoDevedor: Number(l.saldo_devedor) || Number(l.valor_principal) || 0,
+            status: (l.status || 'ATIVO') as 'ATIVO' | 'QUITADO' | 'ATRASADO',
             payments: []
           }));
         setLoans(mappedLoans);
