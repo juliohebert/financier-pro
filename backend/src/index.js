@@ -7,6 +7,7 @@ import clientRoutes from './routes/clients.js';
 import loanRoutes from './routes/loans.js';
 import cashflowRoutes from './routes/cashflow.js';
 import pricesRoutes from './routes/prices.js';
+import migrationsRoutes from './routes/migrations.js';
 
 // Carrega variáveis do .env
 dotenv.config();
@@ -34,6 +35,7 @@ app.use('/clients', clientRoutes);
 app.use('/loans', loanRoutes);
 app.use('/cashflow', cashflowRoutes);
 app.use('/prices', pricesRoutes);
+app.use('/migrations', migrationsRoutes);
 
 app.get('/', (req, res) => {
   res.send('API Financier Backend rodando!');
