@@ -47,10 +47,10 @@ const MonthlyControlView: React.FC<MonthlyControlViewProps> = ({ loans, onViewDe
     const expectedInterest = loan.amount * (loan.interestRate / 100);
     const paidThisMonth = loan.payments
       .filter(p => {
-        const pDate = new Date(p.date);
-        return p.type === 'JUROS' && pDate.getMonth() === currentMonth && pDate.getFullYear() === currentYear;
+        const pDate = new Date(p.data_pagamento);
+        return p.tipo === 'JUROS' && pDate.getMonth() === currentMonth && pDate.getFullYear() === currentYear;
       })
-      .reduce((sum, p) => sum + p.value, 0);
+      .reduce((sum, p) => sum + p.valor_pago, 0);
 
     const isPaid = paidThisMonth >= expectedInterest;
     const displayDueDate = new Date(loan.dueDate);

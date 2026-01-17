@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Loan, PaymentEntry, AppView } from '../types';
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://financier-ie3x.onrender.com';
+const API_URL = 'https://financier-ie3x.onrender.com';
 
 interface LoanDetailsViewProps {
   loanId: string;

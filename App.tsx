@@ -297,13 +297,13 @@ const App: React.FC = () => {
 
   const stats = useMemo(() => {
     const principalOut = processedLoans.reduce((acc, l) => {
-      const principalPaid = l.payments.filter(p => p.type === 'AMORTIZACAO').reduce((sum, p) => sum + p.value, 0);
+      const principalPaid = l.payments.filter(p => p.tipo === 'AMORTIZACAO').reduce((sum, p) => sum + p.valor_pago, 0);
       return acc + (l.status !== 'QUITADO' ? (l.amount - principalPaid) : 0);
     }, 0);
 
     const interestPending = processedLoans.reduce((acc, l) => {
       if (l.status === 'QUITADO') return acc;
-      const interestPaid = l.payments.filter(p => p.type === 'JUROS').reduce((sum, p) => sum + p.value, 0);
+      const interestPaid = l.payments.filter(p => p.tipo === 'JUROS').reduce((sum, p) => sum + p.valor_pago, 0);
       const totalInterest = l.totalToReceive - l.amount;
       return acc + Math.max(0, totalInterest - interestPaid);
     }, 0);
@@ -430,9 +430,12 @@ const App: React.FC = () => {
       // Atualizar estado local
       const newPayment: PaymentEntry = {
         id: Math.random().toString(36).substr(2, 9),
-        date: paymentDate,
-        value: value,
-        type: isInterestOnly ? 'JUROS' : 'AMORTIZACAO'
+        emprestimo_id: loanId,
+        data_pagamento: paymentDate,
+        valor_pago: value,
+        valor_juros: isInterestOnly ? value : 0,
+        valor_principal: isInterestOnly ? 0 : value,
+        tipo: isInterestOnly ? 'JUROS' : 'AMORTIZACAO'
       };
 
       setLoans(prev => prev.map(loan => {
@@ -806,6 +809,7 @@ const App: React.FC = () => {
                         startDate: loan.startDate,
                         dueDate: loan.dueDate,
                         totalToReceive: loan.totalToReceive,
+                        saldoDevedor: loan.amount,
                         status: 'ATIVO',
                         amountPaid: 0,
                         payments: []

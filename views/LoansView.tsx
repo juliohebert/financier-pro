@@ -70,6 +70,7 @@ const LoansView: React.FC<LoansViewProps> = ({ clients, onAddLoan, onNavigate, d
       amount,
       interestRate: interest,
       totalToReceive: total,
+      saldoDevedor: amount,
       startDate,
       dueDate
     });
