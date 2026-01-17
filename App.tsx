@@ -217,6 +217,7 @@ const App: React.FC = () => {
             interestRate: Number(l.taxa_juros) || 5,
             startDate: l.data_inicio || today,
             dueDate: l.data_vencimento || today,
+            ultimo_vencimento: l.ultimo_vencimento || null,
             totalToReceive: Number(l.total_receber) || 0,
             amountPaid: Number(l.valor_pago) || 0,
             saldoDevedor: Number(l.saldo_devedor) || Number(l.valor_principal) || 0,

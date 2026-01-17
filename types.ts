@@ -76,6 +76,7 @@ export interface Loan {
   saldoDevedor: number;
   startDate: string;
   dueDate: string;
+  ultimo_vencimento?: string | null;
   status: 'ATIVO' | 'QUITADO' | 'ATRASADO';
   payments: PaymentEntry[];
 }
