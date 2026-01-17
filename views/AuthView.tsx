@@ -111,7 +111,7 @@ const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
             
             {!isLogin && (
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest px-2">Nome Completo</label>
+                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest px-2">Nome Completo <span className="text-red-500">*</span></label>
                 <div className="relative">
                   <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-300">person</span>
                   <input 
@@ -128,7 +128,7 @@ const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
             )}
             
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest px-2">E-mail Corporativo</label>
+              <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest px-2">E-mail Corporativo <span className="text-red-500">*</span></label>
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-300">mail</span>
                 <input 
@@ -145,7 +145,7 @@ const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest px-2">Senha de Acesso</label>
+              <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest px-2">Senha de Acesso <span className="text-red-500">*</span></label>
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-300">lock</span>
                 <input 

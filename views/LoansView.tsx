@@ -111,7 +111,7 @@ const LoansView: React.FC<LoansViewProps> = ({ clients, onAddLoan, onNavigate, d
           <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
             <div className="space-y-2">
               <label className="text-sm font-black text-slate-700 uppercase tracking-wider flex items-center gap-1">
-                Quem vai receber?
+                Quem vai receber? <span className="text-red-500">*</span>
               </label>
               <select 
                 value={selectedClientId}
@@ -128,7 +128,7 @@ const LoansView: React.FC<LoansViewProps> = ({ clients, onAddLoan, onNavigate, d
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-black text-slate-700 uppercase tracking-wider flex items-center gap-1">
-                  Valor Emprestado (Principal)
+                  Valor Emprestado (Principal) <span className="text-red-500">*</span>
                   <span className="material-symbols-outlined text-xs text-slate-300 cursor-help" title="Este é o valor que sairá do seu caixa hoje.">info</span>
                 </label>
                 <div className="relative group">
@@ -145,7 +145,7 @@ const LoansView: React.FC<LoansViewProps> = ({ clients, onAddLoan, onNavigate, d
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-black text-slate-700 uppercase tracking-wider flex items-center gap-1">
-                  Taxa de Juros (%)
+                  Taxa de Juros (%) <span className="text-red-500">*</span>
                   <span className="material-symbols-outlined text-xs text-slate-300 cursor-help" title="Esta taxa foi definida automaticamente nas Configurações.">info</span>
                 </label>
                 <input 
@@ -161,7 +161,7 @@ const LoansView: React.FC<LoansViewProps> = ({ clients, onAddLoan, onNavigate, d
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-50">
               <div className="space-y-2">
                 <label className="text-sm font-black text-slate-700 uppercase tracking-wider flex items-center gap-1">
-                  Data de Liberação
+                  Data de Liberação <span className="text-red-500">*</span>
                 </label>
                 <input 
                   type="date" 
@@ -172,7 +172,7 @@ const LoansView: React.FC<LoansViewProps> = ({ clients, onAddLoan, onNavigate, d
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-black text-slate-700 uppercase tracking-wider flex items-center gap-1">
-                  Próximo Vencimento (Juros/Capital)
+                  Próximo Vencimento (Juros/Capital) <span className="text-red-500">*</span>
                   <span className="material-symbols-outlined text-xs text-primary cursor-help" title="Definido automaticamente para 30 dias após a liberação.">event</span>
                 </label>
                 <input 

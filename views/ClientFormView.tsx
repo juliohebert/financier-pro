@@ -42,7 +42,9 @@ const ClientFormView: React.FC<ClientFormViewProps> = ({ onNavigate, onAddClient
         <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-sm font-black text-slate-700 uppercase tracking-wider">Nome Completo / Razão Social</label>
+              <label className="text-sm font-black text-slate-700 uppercase tracking-wider">
+                Nome Completo / Razão Social <span className="text-red-500">*</span>
+              </label>
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">person</span>
                 <input 

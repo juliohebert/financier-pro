@@ -476,11 +476,11 @@ const AdminLicenseView: React.FC = () => {
             </div>
             <form onSubmit={handleCreateUser} className="space-y-6">
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest px-2">Nome Completo</label>
+                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest px-2">Nome Completo <span className="text-red-500">*</span></label>
                 <input required value={newUser.name} onChange={e => setNewUser({...newUser, name: e.target.value})} className="w-full h-14 bg-bg-light border-none rounded-2xl px-6 font-bold text-slate-900 focus:ring-4 focus:ring-primary/20" placeholder="Ex: João da Silva" />
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest px-2">E-mail de Acesso</label>
+                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest px-2">E-mail de Acesso <span className="text-red-500">*</span></label>
                 <input required type="email" value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})} className="w-full h-14 bg-bg-light border-none rounded-2xl px-6 font-bold text-slate-900 focus:ring-4 focus:ring-primary/20" placeholder="joao@email.com" />
               </div>
               <div className="space-y-2">
