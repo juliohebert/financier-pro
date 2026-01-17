@@ -225,6 +225,10 @@ const AdminLicenseView: React.FC = () => {
                   const mensal = plans.find(p => p.name === 'Mensal')?.price || 49.00;
                   const anual = plans.find(p => p.name === 'Anual')?.price || 468.00;
                   await pricesService.update({ mensal, anual });
+                  
+                  // Disparar evento para notificar outros componentes
+                  window.dispatchEvent(new Event('pricesUpdated'));
+                  
                   alert('✅ Preços atualizados com sucesso!');
                 } catch (error) {
                   console.error('Erro ao salvar preços:', error);

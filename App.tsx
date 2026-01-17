@@ -167,7 +167,20 @@ const App: React.FC = () => {
         // Mantém os valores padrão em caso de erro
       }
     };
+    
     loadPrices();
+    
+    // Escutar evento de atualização de preços (disparado pelo admin)
+    const handlePricesUpdated = () => {
+      console.log('📢 Evento de atualização de preços recebido');
+      loadPrices();
+    };
+    
+    window.addEventListener('pricesUpdated', handlePricesUpdated);
+    
+    return () => {
+      window.removeEventListener('pricesUpdated', handlePricesUpdated);
+    };
   }, []);
 
   // Carregar dados do backend ao fazer login
