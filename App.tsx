@@ -133,6 +133,20 @@ const App: React.FC = () => {
 
   const today = new Date().toISOString().split('T')[0];
 
+  // Calcular dias restantes do teste
+  const trialDaysRemaining = useMemo(() => {
+    if (!auth.isAuthenticated || auth.license.status !== 'TESTE' || !auth.license.trialStartDate) {
+      return 14;
+    }
+    
+    const startDate = new Date(auth.license.trialStartDate);
+    const now = new Date();
+    const diffTime = now.getTime() - startDate.getTime();
+    const daysPassed = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    return Math.max(0, 14 - daysPassed);
+  }, [auth.isAuthenticated, auth.license.status, auth.license.trialStartDate]);
+
   // Carregar preços dos planos ao montar o componente
   useEffect(() => {
     const loadPrices = async () => {
@@ -500,7 +514,7 @@ const App: React.FC = () => {
                       <span className="material-symbols-outlined text-5xl text-primary">celebration</span>
                     </div>
                     <h2 className="text-3xl font-black text-slate-900 mb-2">Bem-vindo ao Financier.pro!</h2>
-                    <p className="text-slate-600 font-medium">Você tem <span className="text-primary font-black">14 dias grátis</span> para explorar todas as funcionalidades</p>
+                    <p className="text-slate-600 font-medium">Você tem <span className="text-primary font-black">{trialDaysRemaining} dias grátis</span> para explorar todas as funcionalidades</p>
                   </div>
                   
                   <div className="space-y-3 mb-6">
@@ -589,7 +603,7 @@ const App: React.FC = () => {
                       onClick={handleContinueWithTrial}
                       className="w-full h-14 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-all"
                     >
-                      Continuar com Teste Grátis (14 dias)
+                      Continuar com Teste Grátis ({trialDaysRemaining} dias)
                     </button>
                   </div>
                 </>
