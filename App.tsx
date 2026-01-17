@@ -421,9 +421,8 @@ const App: React.FC = () => {
 
       // Tentar registrar pagamento no backend
       await loansService.registerPayment(loanId, {
-        valor: value,
-        tipo_pagamento: isInterestOnly ? 'JUROS' : 'AMORTIZACAO',
-        data_pagamento: paymentDate
+        tipo: isInterestOnly ? 'JUROS' : 'AMORTIZACAO',
+        valor_pago: value
       }).catch(err => {
         console.warn('Erro ao registrar pagamento na API, salvando localmente:', err);
       });

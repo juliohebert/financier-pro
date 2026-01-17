@@ -36,10 +36,9 @@ export const loansService = {
 
   // Registrar pagamento
   async registerPayment(loanId: string, pagamento: {
-    data_pagamento: string;
-    valor: number;
-    tipo_pagamento: 'JUROS' | 'AMORTIZACAO';
-    observacoes?: string;
+    tipo: 'JUROS' | 'AMORTIZACAO';
+    valor_pago: number;
+    observacao?: string;
   }) {
     const response = await api.post(`/loans/${loanId}/payments`, pagamento);
     return response.data;
