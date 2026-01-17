@@ -56,7 +56,7 @@ const UpgradeView: React.FC<UpgradeViewProps> = ({ auth, onSubscribe, planPrices
         <div className="bg-white rounded-[3rem] border border-slate-200 p-10 flex flex-col hover:border-primary/50 transition-all shadow-sm">
           <div className="mb-8">
             <h3 className="text-xl font-black text-slate-900">Plano Mensal</h3>
-            <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">Ideal para iniciantes</p>
+            <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">Flexibilidade total</p>
           </div>
           <div className="mb-8 flex items-baseline gap-1">
             <span className="text-4xl font-black text-bg-dark">R$ {monthlyPrice.toFixed(2).replace('.', ',')}</span>
@@ -69,11 +69,19 @@ const UpgradeView: React.FC<UpgradeViewProps> = ({ auth, onSubscribe, planPrices
             </li>
             <li className="flex items-center gap-3 text-slate-600 font-medium">
               <span className="material-symbols-outlined text-primary font-bold">check_circle</span>
-              Dashboards e Relatórios
+              Dashboards em Tempo Real
             </li>
             <li className="flex items-center gap-3 text-slate-600 font-medium">
               <span className="material-symbols-outlined text-primary font-bold">check_circle</span>
-              Suporte via Ticket
+              Relatórios Completos
+            </li>
+            <li className="flex items-center gap-3 text-slate-600 font-medium">
+              <span className="material-symbols-outlined text-primary font-bold">check_circle</span>
+              Controle de Juros Automático
+            </li>
+            <li className="flex items-center gap-3 text-slate-600 font-medium">
+              <span className="material-symbols-outlined text-primary font-bold">check_circle</span>
+              Suporte via WhatsApp
             </li>
           </ul>
           <button 
@@ -86,35 +94,41 @@ const UpgradeView: React.FC<UpgradeViewProps> = ({ auth, onSubscribe, planPrices
 
         <div className="bg-bg-dark rounded-[3rem] p-10 flex flex-col relative overflow-hidden shadow-2xl scale-105">
           <div className="absolute top-0 right-0 bg-primary text-bg-dark px-6 py-2 rounded-bl-3xl font-black text-xs uppercase tracking-widest">
-            MAIS VANTAJOSO
+            ECONOMIZE {Math.round((savings / (monthlyPrice * 12)) * 100)}%
           </div>
           <div className="mb-8">
             <h3 className="text-xl font-black text-white">Plano Anual</h3>
-            <p className="text-primary font-bold text-xs uppercase tracking-widest">Pague 10 meses, ganhe 12</p>
+            <p className="text-primary font-bold text-xs uppercase tracking-widest">O MAIS VANTAJOSO</p>
           </div>
           <div className="mb-8">
             <div className="flex items-baseline gap-1">
               <span className="text-4xl font-black text-white">R$ {annualPrice.toFixed(2).replace('.', ',')}</span>
               <span className="text-slate-400 font-bold">/ano</span>
             </div>
-            <p className="text-primary font-bold text-xs mt-1">Economia de R$ {savings.toFixed(2).replace('.', ',')}</p>
+            <p className="text-primary font-bold text-sm mt-2">
+              Apenas R$ {annualMonthlyPrice.toFixed(2).replace('.', ',')} por mês • Economize R$ {savings.toFixed(2).replace('.', ',')}
+            </p>
           </div>
           <ul className="space-y-4 mb-10 flex-1">
             <li className="flex items-center gap-3 text-slate-300 font-medium">
               <span className="material-symbols-outlined text-primary font-bold">check_circle</span>
-              Tudo do plano mensal
+              Clientes e Empréstimos Ilimitados
             </li>
             <li className="flex items-center gap-3 text-slate-300 font-medium">
               <span className="material-symbols-outlined text-primary font-bold">check_circle</span>
-              Backup em Nuvem Diário
+              Dashboards em Tempo Real
             </li>
             <li className="flex items-center gap-3 text-slate-300 font-medium">
               <span className="material-symbols-outlined text-primary font-bold">check_circle</span>
-              Suporte Prioritário (WhatsApp)
+              Relatórios Completos
             </li>
             <li className="flex items-center gap-3 text-slate-300 font-medium">
               <span className="material-symbols-outlined text-primary font-bold">check_circle</span>
-              Acesso Antecipado a Recursos
+              Controle de Juros Automático
+            </li>
+            <li className="flex items-center gap-3 text-slate-300 font-medium">
+              <span className="material-symbols-outlined text-primary font-bold">check_circle</span>
+              Suporte via WhatsApp
             </li>
           </ul>
           <button 
