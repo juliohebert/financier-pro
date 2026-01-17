@@ -14,10 +14,18 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange, user, onLog
 
   const getTrialDaysRemaining = () => {
     if (!user || user.license.status !== 'TESTE') return 0;
+    
+    // Usar comparação de dias de calendário ao invés de período de 24h
     const start = new Date(user.license.trialStartDate);
     const now = new Date();
-    const diffTime = now.getTime() - start.getTime();
+    
+    // Zerar as horas para comparar apenas as datas
+    const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    const currentDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    const diffTime = currentDay.getTime() - startDay.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
     return Math.max(0, 14 - diffDays);
   };
 

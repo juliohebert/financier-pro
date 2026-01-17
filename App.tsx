@@ -139,9 +139,15 @@ const App: React.FC = () => {
       return 14;
     }
     
+    // Usar comparação de dias de calendário ao invés de período de 24h
     const startDate = new Date(auth.license.trialStartDate);
     const now = new Date();
-    const diffTime = now.getTime() - startDate.getTime();
+    
+    // Zerar as horas para comparar apenas as datas
+    const startDay = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+    const currentDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    const diffTime = currentDay.getTime() - startDay.getTime();
     const daysPassed = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     
     return Math.max(0, 14 - daysPassed);
