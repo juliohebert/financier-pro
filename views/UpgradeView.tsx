@@ -1,25 +1,39 @@
 
 import React from 'react';
 import { UserAuth } from '../types';
+import { PlanPrices } from '../services/pricesService';
 
 interface UpgradeViewProps {
   auth: UserAuth;
   onSubscribe: () => void;
+  planPrices?: PlanPrices;
 }
 
-const UpgradeView: React.FC<UpgradeViewProps> = ({ auth, onSubscribe }) => {
+const UpgradeView: React.FC<UpgradeViewProps> = ({ auth, onSubscribe, planPrices = { mensal: 49.00, anual: 468.00 } }) => {
   const isExpired = auth.license.status === 'EXPIRADO';
 
   const getTrialDaysRemaining = () => {
     if (auth.license.status !== 'TESTE') return 0;
+    
+    // Usar comparação de dias de calendário ao invés de período de 24h
     const start = new Date(auth.license.trialStartDate);
     const now = new Date();
-    const diffTime = now.getTime() - start.getTime();
+    
+    // Zerar as horas para comparar apenas as datas
+    const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    const currentDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    const diffTime = currentDay.getTime() - startDay.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
     return Math.max(0, 14 - diffDays);
   };
 
   const daysLeft = getTrialDaysRemaining();
+  const monthlyPrice = planPrices.mensal;
+  const annualPrice = planPrices.anual;
+  const annualMonthlyPrice = annualPrice / 12;
+  const savings = (monthlyPrice * 12) - annualPrice;
 
   return (
     <div className="p-8 max-w-[1000px] mx-auto animate-in fade-in duration-500">
@@ -45,7 +59,7 @@ const UpgradeView: React.FC<UpgradeViewProps> = ({ auth, onSubscribe }) => {
             <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">Ideal para iniciantes</p>
           </div>
           <div className="mb-8 flex items-baseline gap-1">
-            <span className="text-4xl font-black text-bg-dark">R$ 49,90</span>
+            <span className="text-4xl font-black text-bg-dark">R$ {monthlyPrice.toFixed(2).replace('.', ',')}</span>
             <span className="text-slate-400 font-bold">/mês</span>
           </div>
           <ul className="space-y-4 mb-10 flex-1">
@@ -80,10 +94,10 @@ const UpgradeView: React.FC<UpgradeViewProps> = ({ auth, onSubscribe }) => {
           </div>
           <div className="mb-8">
             <div className="flex items-baseline gap-1">
-              <span className="text-4xl font-black text-white">R$ 499,00</span>
+              <span className="text-4xl font-black text-white">R$ {annualPrice.toFixed(2).replace('.', ',')}</span>
               <span className="text-slate-400 font-bold">/ano</span>
             </div>
-            <p className="text-primary font-bold text-xs mt-1">Economia de R$ 99,80</p>
+            <p className="text-primary font-bold text-xs mt-1">Economia de R$ {savings.toFixed(2).replace('.', ',')}</p>
           </div>
           <ul className="space-y-4 mb-10 flex-1">
             <li className="flex items-center gap-3 text-slate-300 font-medium">

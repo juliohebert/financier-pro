@@ -705,7 +705,7 @@ const App: React.FC = () => {
           </div>
         )}
         {accessDenied ? (
-          <UpgradeView auth={auth} onSubscribe={handleSubscribe} />
+          <UpgradeView auth={auth} onSubscribe={handleSubscribe} planPrices={planPrices} />
         ) : (
           <>
             {currentView === AppView.DASHBOARD && auth.role === 'USER' && (
@@ -867,7 +867,7 @@ const App: React.FC = () => {
                 onPayment={handleRegisterPayment}
               />
             )}
-            {currentView === AppView.UPGRADE && auth.role === 'USER' && <UpgradeView auth={auth} onSubscribe={handleSubscribe} />}
+            {currentView === AppView.UPGRADE && auth.role === 'USER' && <UpgradeView auth={auth} onSubscribe={handleSubscribe} planPrices={planPrices} />}
             {currentView === AppView.ADMIN_LICENSES && auth.role === 'ADMIN' && <AdminLicenseView />}
           </>
         )}
