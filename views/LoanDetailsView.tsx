@@ -91,9 +91,27 @@ export default function LoanDetailsView({ loanId, onNavigate, token }: LoanDetai
     );
   }
 
-  const jurosDevidos = (loan.saldo_devedor * loan.taxa_juros) / 100;
+  // Verificar se já pagou juros neste período
+  const hoje = new Date();
+  const dataVencimento = new Date(loan.data_vencimento);
+  const ultimoPagamentoJuros = loan.payments?.filter((p: any) => p.tipo === 'JUROS')
+    .sort((a: any, b: any) => new Date(b.data_pagamento).getTime() - new Date(a.data_pagamento).getTime())[0];
+  
+  const dataPagamentoJuros = ultimoPagamentoJuros ? new Date(ultimoPagamentoJuros.data_pagamento) : null;
+  
+  // Se pagou juros depois do último vencimento registrado, está em dia até o próximo vencimento
+  const jaPagouJurosDestePeriodo = dataPagamentoJuros && loan.ultimo_vencimento 
+    ? dataPagamentoJuros >= new Date(loan.ultimo_vencimento)
+    : false;
+  
+  // Juros devidos apenas se vencimento passou e ainda não pagou do período
+  const jurosDevidos = (!jaPagouJurosDestePeriodo && hoje >= dataVencimento) 
+    ? (loan.saldo_devedor * loan.taxa_juros) / 100 
+    : 0;
+  
+  const jurosProximoPeriodo = (loan.saldo_devedor * loan.taxa_juros) / 100;
   const totalDevido = loan.saldo_devedor + jurosDevidos;
-  const isOverdue = new Date(loan.data_vencimento) < new Date() && loan.status === 'ATIVO';
+  const isOverdue = jurosDevidos > 0 && loan.status === 'ATIVO';
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
@@ -162,11 +180,17 @@ export default function LoanDetailsView({ loanId, onNavigate, token }: LoanDetai
 
               <div>
                 <p className="text-xs font-black uppercase text-slate-400 tracking-widest mb-2">
-                  Juros do Período
+                  {jurosDevidos > 0 ? 'Juros Devidos (Vencidos)' : 'Próximos Juros (No Vencimento)'}
                 </p>
-                <p className="text-2xl font-black text-orange-600">
-                  R$ {jurosDevidos.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                <p className={`text-2xl font-black ${jurosDevidos > 0 ? 'text-red-600' : 'text-orange-600'}`}>
+                  R$ {(jurosDevidos > 0 ? jurosDevidos : jurosProximoPeriodo).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
+                {jurosDevidos === 0 && !jaPagouJurosDestePeriodo && (
+                  <p className="text-xs text-slate-400 mt-1">Será cobrado no vencimento</p>
+                )}
+                {jaPagouJurosDestePeriodo && (
+                  <p className="text-xs text-green-600 mt-1 font-bold">✓ Juros deste período pagos</p>
+                )}
               </div>
 
               <div>
@@ -195,26 +219,52 @@ export default function LoanDetailsView({ loanId, onNavigate, token }: LoanDetai
 
             {loan.status === 'ATIVO' && (
               <div className="mt-6 pt-6 border-t border-slate-100">
-                <div className="bg-primary/5 p-6 rounded-2xl border border-dashed border-primary/20">
-                  <h3 className="font-black text-slate-900 text-sm flex items-center gap-2 mb-4">
-                    <span className="material-symbols-outlined text-primary text-sm">lightbulb</span>
-                    Opções de Pagamento no Vencimento
-                  </h3>
-                  <div className="space-y-3 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Opção 1: Pagar apenas juros</span>
-                      <span className="font-bold text-orange-600">
-                        R$ {jurosDevidos.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                {jaPagouJurosDestePeriodo ? (
+                  <div className="bg-green-50 p-6 rounded-2xl border border-green-200">
+                    <h3 className="font-black text-green-800 text-sm flex items-center gap-2 mb-2">
+                      <span className="material-symbols-outlined text-green-600 text-sm">check_circle</span>
+                      Cliente em Dia
+                    </h3>
+                    <p className="text-xs text-green-700 leading-relaxed">
+                      Os juros deste período já foram pagos. O próximo vencimento será em{' '}
+                      <strong>{new Date(loan.data_vencimento).toLocaleDateString('pt-BR')}</strong>, quando
+                      novos juros de <strong>R$ {jurosProximoPeriodo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong> serão devidos.
+                    </p>
+                  </div>
+                ) : (
+                  <div className={`p-6 rounded-2xl border border-dashed ${
+                    isOverdue ? 'bg-red-50 border-red-200' : 'bg-primary/5 border-primary/20'
+                  }`}>
+                    <h3 className={`font-black text-sm flex items-center gap-2 mb-4 ${
+                      isOverdue ? 'text-red-800' : 'text-slate-900'
+                    }`}>
+                      <span className={`material-symbols-outlined text-sm ${
+                        isOverdue ? 'text-red-600' : 'text-primary'
+                      }`}>
+                        {isOverdue ? 'warning' : 'lightbulb'}
                       </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-600">Opção 2: Quitar tudo (principal + juros)</span>
-                      <span className="font-bold text-primary">
-                        R$ {totalDevido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                      </span>
+                      {isOverdue ? 'Pagamento Atrasado!' : 'Opções de Pagamento no Vencimento'}
+                    </h3>
+                    <div className="space-y-3 text-sm">
+                      <div className="flex justify-between">
+                        <span className={isOverdue ? 'text-red-700' : 'text-slate-600'}>
+                          Opção 1: Pagar apenas juros
+                        </span>
+                        <span className={`font-bold ${isOverdue ? 'text-red-700' : 'text-orange-600'}`}>
+                          R$ {jurosProximoPeriodo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className={isOverdue ? 'text-red-700' : 'text-slate-600'}>
+                          Opção 2: Quitar tudo (principal + juros)
+                        </span>
+                        <span className={`font-bold ${isOverdue ? 'text-red-700' : 'text-primary'}`}>
+                          R$ {(loan.saldo_devedor + jurosProximoPeriodo).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
           </div>
@@ -322,15 +372,15 @@ export default function LoanDetailsView({ loanId, onNavigate, token }: LoanDetai
                   onChange={(e) => {
                     setPaymentType(e.target.value as 'JUROS' | 'AMORTIZACAO');
                     if (e.target.value === 'JUROS') {
-                      setPaymentValue(jurosDevidos.toFixed(2));
+                      setPaymentValue(jurosProximoPeriodo.toFixed(2));
                     } else {
-                      setPaymentValue(totalDevido.toFixed(2));
+                      setPaymentValue((loan.saldo_devedor + jurosProximoPeriodo).toFixed(2));
                     }
                   }}
                   className="w-full h-14 bg-bg-light border-none rounded-xl px-4 focus:ring-2 focus:ring-primary font-bold text-slate-900"
                 >
-                  <option value="JUROS">Apenas Juros (R$ {jurosDevidos.toFixed(2)})</option>
-                  <option value="AMORTIZACAO">Quitação Total (R$ {totalDevido.toFixed(2)})</option>
+                  <option value="JUROS">Apenas Juros (R$ {jurosProximoPeriodo.toFixed(2)})</option>
+                  <option value="AMORTIZACAO">Quitação Total (R$ {(loan.saldo_devedor + jurosProximoPeriodo).toFixed(2)})</option>
                 </select>
               </div>
 
