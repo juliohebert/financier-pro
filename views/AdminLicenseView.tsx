@@ -247,11 +247,13 @@ const AdminLicenseView: React.FC = () => {
                    <div className="relative flex-1">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">R$</span>
                       <input 
-                        type="number" 
+                        type="number"
+                        step="0.01"
+                        min="0"
                         value={p.price}
                         onChange={(e) => {
-                          const val = parseFloat(e.target.value);
-                          if (!isNaN(val)) setPlans(prev => prev.map(item => item.id === p.id ? {...item, price: val} : item));
+                          const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                          setPlans(prev => prev.map(item => item.id === p.id ? {...item, price: val} : item));
                         }}
                         className="w-full h-14 bg-white border border-slate-200 rounded-xl pl-12 pr-4 text-xl font-black text-slate-900"
                       />
