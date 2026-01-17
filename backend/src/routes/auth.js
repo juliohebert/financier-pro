@@ -143,10 +143,11 @@ router.post('/register', async (req, res) => {
     // Hashear senha
     const senha_hash = await bcrypt.hash(senha, 10);
 
-    // Criar usuário
+    // Criar usuário com data de início do teste
+    const dataInicioTeste = new Date().toISOString();
     const result = await pool.query(
-      'INSERT INTO usuarios (nome, email, senha_hash, funcao, status_licenca, plano_licenca) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, nome, email, funcao, status_licenca, plano_licenca, data_inicio_teste',
-      [nome, email, senha_hash, 'USUARIO', 'TESTE', 'Teste']
+      'INSERT INTO usuarios (nome, email, senha_hash, funcao, status_licenca, plano_licenca, data_inicio_teste) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, nome, email, funcao, status_licenca, plano_licenca, data_inicio_teste',
+      [nome, email, senha_hash, 'USUARIO', 'TESTE', 'Teste', dataInicioTeste]
     );
 
     const usuario = result.rows[0];
