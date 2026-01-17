@@ -56,9 +56,13 @@ export interface Client {
 
 export interface PaymentEntry {
   id: string;
-  date: string;
-  value: number;
-  type: 'JUROS' | 'AMORTIZACAO';
+  emprestimo_id: string;
+  data_pagamento: string;
+  tipo: 'JUROS' | 'AMORTIZACAO';
+  valor_pago: number;
+  valor_juros: number;
+  valor_principal: number;
+  observacao?: string;
 }
 
 export interface Loan {
@@ -69,6 +73,7 @@ export interface Loan {
   interestRate: number;
   totalToReceive: number;
   amountPaid: number; 
+  saldoDevedor: number;
   startDate: string;
   dueDate: string;
   status: 'ATIVO' | 'QUITADO' | 'ATRASADO';

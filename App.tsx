@@ -869,11 +869,11 @@ const App: React.FC = () => {
                : <ReportsView clients={processedClients} />
             )}
             {currentView === AppView.SETTINGS && <SettingsView settings={settings} onUpdateSettings={setSettings} />}
-            {currentView === AppView.LOAN_DETAILS && auth.role === 'USER' && processedLoans.find(l => l.id === selectedLoanId) && (
+            {currentView === AppView.LOAN_DETAILS && auth.role === 'USER' && selectedLoanId && (
               <LoanDetailsView 
-                loan={processedLoans.find(l => l.id === selectedLoanId)!} 
+                loanId={selectedLoanId} 
                 onNavigate={(view) => handleNavigate(view)} 
-                onPayment={handleRegisterPayment}
+                token={localStorage.getItem('token') || ''}
               />
             )}
             {currentView === AppView.UPGRADE && auth.role === 'USER' && <UpgradeView auth={auth} onSubscribe={handleSubscribe} planPrices={planPrices} />}
