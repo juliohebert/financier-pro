@@ -70,6 +70,13 @@ router.post('/:id/payments', authenticateToken, async (req, res) => {
   const loanId = req.params.id;
 
   try {
+    console.log('=== REGISTRAR PAGAMENTO ===');
+    console.log('Loan ID:', loanId);
+    console.log('User ID:', req.user.id);
+    console.log('Body:', req.body);
+    console.log('Tipo:', tipo);
+    console.log('Valor:', valor_pago);
+
     // Verificar se o empréstimo pertence ao usuário
     const loanResult = await pool.query(
       'SELECT * FROM emprestimos WHERE id = $1 AND usuario_id = $2',
@@ -77,10 +84,12 @@ router.post('/:id/payments', authenticateToken, async (req, res) => {
     );
 
     if (loanResult.rows.length === 0) {
+      console.log('Empréstimo não encontrado!');
       return res.status(404).json({ error: 'Empréstimo não encontrado' });
     }
 
     const loan = loanResult.rows[0];
+    console.log('Empréstimo encontrado:', loan);
     const jurosDevidos = (loan.saldo_devedor * loan.taxa_juros) / 100;
 
     let valor_juros = 0;
@@ -132,6 +141,9 @@ router.post('/:id/payments', authenticateToken, async (req, res) => {
     });
 
   } catch (err) {
+    console.error('=== ERRO AO REGISTRAR PAGAMENTO ===');
+    console.error('Erro:', err.message);
+    console.error('Stack:', err.stack);
     res.status(500).json({ error: err.message });
   }
 });
