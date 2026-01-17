@@ -419,37 +419,34 @@ const App: React.FC = () => {
       
       if (!targetLoan) return;
 
-      // Tentar registrar pagamento no backend
-      await loansService.registerPayment(loanId, {
+      // Registrar pagamento no backend
+      const response = await loansService.registerPayment(loanId, {
         tipo: isInterestOnly ? 'JUROS' : 'AMORTIZACAO',
         valor_pago: value
-      }).catch(err => {
-        console.warn('Erro ao registrar pagamento na API, salvando localmente:', err);
       });
 
-      // Atualizar estado local
+      // Usar dados do backend para atualizar
+      const updatedLoanData = response.data.loan;
       const newPayment: PaymentEntry = {
-        id: Math.random().toString(36).substr(2, 9),
+        id: response.data.payment.id.toString(),
         emprestimo_id: loanId,
-        data_pagamento: paymentDate,
-        valor_pago: value,
-        valor_juros: isInterestOnly ? value : 0,
-        valor_principal: isInterestOnly ? 0 : value,
-        tipo: isInterestOnly ? 'JUROS' : 'AMORTIZACAO'
+        data_pagamento: response.data.payment.data_pagamento,
+        valor_pago: response.data.payment.valor_pago,
+        valor_juros: response.data.payment.valor_juros,
+        valor_principal: response.data.payment.valor_principal,
+        tipo: response.data.payment.tipo,
+        observacao: response.data.payment.observacao
       };
 
       setLoans(prev => prev.map(loan => {
         if (loan.id === loanId) {
-          let newDueDate = loan.dueDate;
-          if (isInterestOnly) {
-            const d = new Date(loan.dueDate);
-            d.setMonth(d.getMonth() + 1);
-            newDueDate = d.toISOString().split('T')[0];
-          }
           return { 
-            ...loan, 
-            dueDate: newDueDate,
-            amountPaid: loan.amountPaid + value,
+            ...loan,
+            dueDate: updatedLoanData.data_vencimento.split('T')[0],
+            ultimo_vencimento: updatedLoanData.ultimo_vencimento ? updatedLoanData.ultimo_vencimento.split('T')[0] : null,
+            amountPaid: updatedLoanData.valor_pago,
+            saldoDevedor: parseFloat(updatedLoanData.saldo_devedor),
+            status: updatedLoanData.status,
             payments: [...loan.payments, newPayment]
           };
         }

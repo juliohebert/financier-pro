@@ -134,10 +134,15 @@ router.post('/:id/payments', authenticateToken, async (req, res) => {
       [loanId, tipo, valor_pago, valor_juros, valor_principal, observacao || null]
     );
 
+    // Buscar dados atualizados do empréstimo
+    const updatedLoanResult = await pool.query(
+      'SELECT * FROM emprestimos WHERE id = $1',
+      [loanId]
+    );
+
     res.status(201).json({
       payment: paymentResult.rows[0],
-      novo_saldo,
-      novo_status
+      loan: updatedLoanResult.rows[0]
     });
 
   } catch (err) {
