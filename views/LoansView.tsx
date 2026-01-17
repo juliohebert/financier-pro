@@ -16,6 +16,7 @@ const LoansView: React.FC<LoansViewProps> = ({ clients, onAddLoan, onNavigate, d
   const [interestStr, setInterestStr] = useState<string>(defaultInterest.toString());
   const [selectedClientId, setSelectedClientId] = useState<string>(preSelectedClientId || '');
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [showSuccessBanner, setShowSuccessBanner] = useState(!!preSelectedClientId);
   
   // Função para calcular o mês seguinte mantendo o dia
   const calculateNextMonth = (dateStr: string) => {
@@ -81,6 +82,24 @@ const LoansView: React.FC<LoansViewProps> = ({ clients, onAddLoan, onNavigate, d
         <span>/</span> 
         <span className="text-slate-900">Novo Empréstimo</span>
       </div>
+
+      {showSuccessBanner && (
+        <div className="mb-6 bg-green-50 border-2 border-green-500 rounded-2xl p-4 flex items-center justify-between animate-in slide-in-from-top duration-500">
+          <div className="flex items-center gap-3">
+            <span className="material-symbols-outlined text-green-600 text-3xl">check_circle</span>
+            <div>
+              <p className="font-black text-green-900">Cliente cadastrado com sucesso!</p>
+              <p className="text-sm text-green-700 font-medium">Agora você pode criar um empréstimo para este cliente.</p>
+            </div>
+          </div>
+          <button 
+            onClick={() => setShowSuccessBanner(false)}
+            className="text-green-600 hover:text-green-800 p-2"
+          >
+            <span className="material-symbols-outlined">close</span>
+          </button>
+        </div>
+      )}
 
       <div className="mb-8">
         <h1 className="text-4xl font-black tracking-tight text-bg-dark">Emprestar Capital</h1>

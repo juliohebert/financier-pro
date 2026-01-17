@@ -745,24 +745,32 @@ const App: React.FC = () => {
                    return null;
                  });
 
+                 let clienteId = '';
+                 
                  if (novoCliente) {
                    // Adicionar cliente com ID do backend
+                   clienteId = novoCliente.id?.toString() || Math.random().toString(36).substr(2, 9);
                    setBaseClients(prev => [{
-                     id: novoCliente.id?.toString() || Math.random().toString(36).substr(2, 9),
+                     id: clienteId,
                      name: novoCliente.nome || c.name,
                      document: novoCliente.documento || c.document,
                      initials
                    }, ...prev]);
                  } else {
                    // Fallback: adicionar localmente
+                   clienteId = Math.random().toString(36).substr(2, 9);
                    setBaseClients(prev => [{
                      ...c,
-                     id: Math.random().toString(36).substr(2, 9),
+                     id: clienteId,
                      initials
                    }, ...prev]);
                  }
                  
-                 setCurrentView(AppView.CLIENTS);
+                 // Redirecionar para criar empréstimo com o cliente pré-selecionado
+                 handleNavigate(AppView.LOANS, clienteId);
+                 
+                 // Mostrar mensagem de sucesso
+                 console.log('✅ Cliente cadastrado! Agora você pode criar um empréstimo.');
                } catch (error) {
                  console.error('Erro ao adicionar cliente:', error);
                  alert('Erro ao adicionar cliente. Tente novamente.');
