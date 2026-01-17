@@ -250,10 +250,16 @@ const AdminLicenseView: React.FC = () => {
                         type="number"
                         step="0.01"
                         min="0"
-                        value={p.price}
+                        value={p.price || ''}
                         onChange={(e) => {
-                          const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
-                          setPlans(prev => prev.map(item => item.id === p.id ? {...item, price: val} : item));
+                          const val = e.target.value === '' ? '' : parseFloat(e.target.value);
+                          setPlans(prev => prev.map(item => item.id === p.id ? {...item, price: val as number} : item));
+                        }}
+                        onBlur={(e) => {
+                          // Ao sair do campo, se estiver vazio, volta para o valor anterior ou 0
+                          if (e.target.value === '') {
+                            setPlans(prev => prev.map(item => item.id === p.id ? {...item, price: 0} : item));
+                          }
                         }}
                         className="w-full h-14 bg-white border border-slate-200 rounded-xl pl-12 pr-4 text-xl font-black text-slate-900"
                       />
