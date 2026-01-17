@@ -172,7 +172,7 @@ const LoansView: React.FC<LoansViewProps> = ({ clients, onAddLoan, onNavigate, d
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-black text-slate-700 uppercase tracking-wider flex items-center gap-1">
-                  Próximo Vencimento (Juros/Capital) <span className="text-red-500">*</span>
+                  Próximo Vencimento <span className="text-red-500">*</span>
                   <span className="material-symbols-outlined text-xs text-primary cursor-help" title="Definido automaticamente para 30 dias após a liberação.">event</span>
                 </label>
                 <input 
