@@ -68,12 +68,6 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 }
 
-const INITIAL_CLIENTS: Omit<Client, 'totalOpen' | 'status'>[] = [
-  { id: '1', name: 'João Silva', document: '123.456.789-00', initials: 'JS' },
-  { id: '2', name: 'Maria Oliveira', document: '987.654.321-11', initials: 'MO' },
-  { id: '3', name: 'Tech Solutions LTDA', document: '12.345.678/0001-99', initials: 'TS' },
-];
-
 const App: React.FC = () => {
   const [auth, setAuth] = useState<UserAuth>(() => {
     // Recuperar dados do usuário do localStorage ao carregar
@@ -121,7 +115,7 @@ const App: React.FC = () => {
   });
   const [selectedLoanId, setSelectedLoanId] = useState<string | null>(null);
   const [preSelectedClientId, setPreSelectedClientId] = useState<string>('');
-  const [baseClients, setBaseClients] = useState<Omit<Client, 'totalOpen' | 'status'>[]>(INITIAL_CLIENTS);
+  const [baseClients, setBaseClients] = useState<Omit<Client, 'totalOpen' | 'status'>[]>([]);
   const [loans, setLoans] = useState<Loan[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [settings, setSettings] = useState<AppSettings>({ defaultInterestRate: 5 });
@@ -206,19 +200,16 @@ const App: React.FC = () => {
           })
         ]);
 
-        // Atualizar estados apenas se recebeu dados
-        if (clientsData && clientsData.length > 0) {
-          const mappedClients = clientsData.map(c => ({
-            id: c.id?.toString() || '',
-            name: c.nome || '',
-            document: c.documento || '',
-            initials: (c.nome?.split(' ')[0][0] + (c.nome?.split(' ').pop()?.[0] || '')).toUpperCase()
-          }));
-          setBaseClients(mappedClients);
-        }
+        // Atualizar estados com dados do banco (ou array vazio se não houver dados)
+        const mappedClients = clientsData.map(c => ({
+          id: c.id?.toString() || '',
+          name: c.nome || '',
+          document: c.documento || '',
+          initials: (c.nome?.split(' ')[0][0] + (c.nome?.split(' ').pop()?.[0] || '')).toUpperCase()
+        }));
+        setBaseClients(mappedClients);
 
-        if (loansData && loansData.length > 0) {
-          const mappedLoans = loansData.map(l => ({
+        const mappedLoans = loansData.map(l => ({
             id: l.id?.toString() || '',
             clientId: l.cliente_id?.toString() || '',
             clientName: l.nome_cliente || '',
@@ -231,21 +222,18 @@ const App: React.FC = () => {
             status: l.status || 'ATIVO',
             payments: []
           }));
-          setLoans(mappedLoans);
-        }
+        setLoans(mappedLoans);
 
-        if (transactionsData && transactionsData.length > 0) {
-          const mappedTransactions = transactionsData.map(t => ({
-            id: t.id?.toString() || '',
-            date: t.data || today,
-            description: t.descricao || '',
-            category: t.categoria || '',
-            type: t.tipo || 'ENTRADA',
-            value: Number(t.valor) || 0,
-            status: 'LIQUIDADO'
-          }));
-          setTransactions(mappedTransactions);
-        }
+        const mappedTransactions = transactionsData.map(t => ({
+          id: t.id?.toString() || '',
+          date: t.data || today,
+          description: t.descricao || '',
+          category: t.categoria || '',
+          type: t.tipo || 'ENTRADA',
+          value: Number(t.valor) || 0,
+          status: 'LIQUIDADO'
+        }));
+        setTransactions(mappedTransactions);
 
         console.log('✅ Dados carregados do backend:', {
           clientes: clientsData?.length || 0,
@@ -388,7 +376,7 @@ const App: React.FC = () => {
         planName: 'Teste'
       }
     });
-    setBaseClients(INITIAL_CLIENTS);
+    setBaseClients([]);
     setLoans([]);
     setTransactions([]);
     setCurrentView(AppView.DASHBOARD);
