@@ -4,17 +4,17 @@ services:
     env: node
     region: oregon
     plan: free
-    rootDir: backend
     buildCommand: npm install
     startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 3001
+        sync: false
       - key: DATABASE_URL
         sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: FRONTEND_URL
-        value: https://financier-pro.vercel.app
+        value: https://financier-pro-five.vercel.app
+
