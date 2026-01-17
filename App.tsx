@@ -425,17 +425,21 @@ const App: React.FC = () => {
         valor_pago: value
       });
 
+      console.log('Resposta do backend:', response);
+
       // Usar dados do backend para atualizar
-      const updatedLoanData = response.data.loan;
+      const updatedLoanData = response.loan;
+      const paymentData = response.payment;
+      
       const newPayment: PaymentEntry = {
-        id: response.data.payment.id.toString(),
+        id: paymentData.id.toString(),
         emprestimo_id: loanId,
-        data_pagamento: response.data.payment.data_pagamento,
-        valor_pago: response.data.payment.valor_pago,
-        valor_juros: response.data.payment.valor_juros,
-        valor_principal: response.data.payment.valor_principal,
-        tipo: response.data.payment.tipo,
-        observacao: response.data.payment.observacao
+        data_pagamento: paymentData.data_pagamento,
+        valor_pago: paymentData.valor_pago,
+        valor_juros: paymentData.valor_juros,
+        valor_principal: paymentData.valor_principal,
+        tipo: paymentData.tipo,
+        observacao: paymentData.observacao
       };
 
       setLoans(prev => prev.map(loan => {
