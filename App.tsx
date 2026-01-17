@@ -138,7 +138,10 @@ const App: React.FC = () => {
     const loadPrices = async () => {
       try {
         const prices = await pricesService.getAll();
-        setPlanPrices(prices);
+        setPlanPrices({
+          mensal: Number(prices.mensal) || 49.00,
+          anual: Number(prices.anual) || 468.00
+        });
       } catch (error) {
         console.error('Erro ao carregar preços:', error);
         // Mantém os valores padrão em caso de erro
